@@ -1,0 +1,15 @@
+OS_Internal.c:38:13:os_mutex_udpatePrio	40	static
+OS_Internal.c:87:13:os_task_udpatePrio	40	static
+OS_Internal.c:155:6:os_obj_updatePrio	24	static,ignoring_inline_asm
+OS_Internal.c:209:17:os_list_init	16	static
+OS_Internal.c:239:17:os_list_search	24	static,ignoring_inline_asm
+OS_Internal.c:275:17:os_handle_list_searchByName	32	static,ignoring_inline_asm
+OS_Internal.c:318:10:os_list_add	32	static,ignoring_inline_asm
+OS_Internal.c:389:10:os_list_remove	40	static,ignoring_inline_asm
+OS_Internal.c:457:7:os_list_pop	40	static,ignoring_inline_asm
+OS_Internal.c:528:6:os_list_clear	32	static,ignoring_inline_asm
+OS_Internal.c:573:6:os_task_list_sort	56	static,ignoring_inline_asm
+OS_Internal.c:650:13:os_handle_list_getObjToUpdate	16	static
+OS_Internal.c:673:6:os_task_list_isObjFreeOnTask	48	static,ignoring_inline_asm
+OS_Internal.c:786:6:os_handle_list_updateAndCheck	64	static,ignoring_inline_asm
+OS_Internal.c:983:6:os_msgQ_updateAndCheck	40	static,ignoring_inline_asm

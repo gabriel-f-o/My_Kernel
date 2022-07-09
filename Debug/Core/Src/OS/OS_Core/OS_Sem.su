@@ -1,0 +1,6 @@
+OS_Sem.c:29:17:os_sem_getFreeCount	16	static
+OS_Sem.c:53:13:os_sem_objTake	24	static,ignoring_inline_asm
+OS_Sem.c:87:10:os_sem_create	40	static
+OS_Sem.c:147:10:os_sem_release	32	static,ignoring_inline_asm
+OS_Sem.c:192:10:os_sem_delete	16	static
+OS_Sem.c:220:10:os_sem_getCount	16	static

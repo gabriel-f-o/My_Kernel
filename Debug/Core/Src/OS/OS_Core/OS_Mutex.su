@@ -1,0 +1,6 @@
+OS_Mutex.c:34:17:os_mutex_getFreeCount	16	static
+OS_Mutex.c:56:13:os_mutex_objTake	24	static
+OS_Mutex.c:101:10:os_mutex_create	32	static
+OS_Mutex.c:160:10:os_mutex_release	32	static,ignoring_inline_asm
+OS_Mutex.c:213:10:os_mutex_delete	16	static
+OS_Mutex.c:241:18:os_mutex_getState	16	static

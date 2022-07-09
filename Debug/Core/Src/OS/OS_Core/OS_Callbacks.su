@@ -1,0 +1,5 @@
+OS_Callbacks.c:25:13:os_task_on_ready_cb	16	static
+OS_Callbacks.c:40:13:os_task_on_block_cb	16	static
+OS_Callbacks.c:54:14:os_idle_task_fn	16	static
+OS_Callbacks.c:70:13:os_no_task_ready_cb	4	static
+OS_Callbacks.c:82:13:os_insufficient_heap_cb	4	static

@@ -1,0 +1,2 @@
+OS_Tick.c:40:10:os_getMsTick	4	static
+OS_Tick.c:53:6:os_tick	32	static,ignoring_inline_asm

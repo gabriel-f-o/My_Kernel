@@ -1,0 +1,6 @@
+OS_Scheduler.c:41:24:os_round_robin	40	static
+OS_Scheduler.c:132:20:os_scheduler	16	static,ignoring_inline_asm
+OS_Scheduler.c:196:14:PendSV_Handler	0	static,ignoring_inline_asm
+OS_Scheduler.c:255:10:os_scheduler_start	16	static,ignoring_inline_asm
+OS_Scheduler.c:285:6:os_scheduler_stop	16	static,ignoring_inline_asm
+OS_Scheduler.c:308:22:os_scheduler_state_get	4	static

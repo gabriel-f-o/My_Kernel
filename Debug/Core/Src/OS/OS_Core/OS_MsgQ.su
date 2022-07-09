@@ -1,0 +1,7 @@
+OS_MsgQ.c:32:17:os_msgQ_getFreeCount	16	static
+OS_MsgQ.c:47:13:os_msgQ_objTake	16	static
+OS_MsgQ.c:68:10:os_msgQ_create	40	static
+OS_MsgQ.c:130:10:os_msgQ_push	24	static
+OS_MsgQ.c:160:10:os_msgQ_delete	16	static
+OS_MsgQ.c:192:10:os_msgQ_getNumberOfMsgs	16	static
+OS_MsgQ.c:216:7:os_msgQ_wait	48	static,ignoring_inline_asm

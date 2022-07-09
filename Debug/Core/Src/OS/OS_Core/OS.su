@@ -1,0 +1,2 @@
+OS.c:36:6:os_init_get	4	static
+OS.c:55:10:os_init	40	static

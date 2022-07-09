@@ -1,0 +1,14 @@
+OS_Tasks.c:46:17:os_task_init_stack	24	static,ignoring_inline_asm
+OS_Tasks.c:97:17:os_task_getFreeCount	24	static
+OS_Tasks.c:129:13:os_task_objTake	16	static
+OS_Tasks.c:153:10:os_task_init	32	static
+OS_Tasks.c:227:6:os_task_must_yeild	24	static,ignoring_inline_asm
+OS_Tasks.c:279:10:os_task_create	40	static
+OS_Tasks.c:392:6:os_task_end	8	static
+OS_Tasks.c:412:10:os_task_return	24	static,ignoring_inline_asm
+OS_Tasks.c:468:10:os_task_delete	32	static,ignoring_inline_asm
+OS_Tasks.c:600:6:os_task_yeild	4	static
+OS_Tasks.c:618:8:os_task_getPrio	24	static
+OS_Tasks.c:645:10:os_task_sleep	24	static,ignoring_inline_asm
+OS_Tasks.c:692:7:os_task_getReturn	24	static
+OS_Tasks.c:720:17:os_task_getState	24	static
