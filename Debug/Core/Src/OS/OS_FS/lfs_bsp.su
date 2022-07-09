@@ -1,0 +1,5 @@
+lfs_bsp.c:19:12:lfs_flash_read	24	static
+lfs_bsp.c:23:12:lfs_flash_write	24	static
+lfs_bsp.c:27:12:lfs_flash_erase	16	static
+lfs_bsp.c:31:12:lfs_flash_sync	16	static
+lfs_bsp.c:100:6:lfs_init	4	static

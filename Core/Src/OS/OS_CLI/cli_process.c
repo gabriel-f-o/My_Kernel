@@ -5,7 +5,7 @@
  *      Author: Gabriel
  */
 
-#include "OS/OS.h"
+#include "common.h"
 #include "main.h"
 #include "usart.h"
 

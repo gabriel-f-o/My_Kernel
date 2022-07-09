@@ -24,7 +24,7 @@ extern os_list_head_t  os_head;
  * PRIVATE VARIABLES
  *********************************************/
 
-static uint32_t os_ticks_ms;
+static volatile uint32_t os_ticks_ms;
 
 /**********************************************
  * PUBLIC FUNCTIONS

@@ -1,0 +1,3 @@
+cli_flash.c:34:13:read	56	static
+cli_flash.c:55:13:write	248	static
+cli_flash.c:72:13:erase	48	static

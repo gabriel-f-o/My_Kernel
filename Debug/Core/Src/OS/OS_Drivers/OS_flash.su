@@ -1,0 +1,3 @@
+OS_flash.c:15:9:flash_write	64	static
+OS_flash.c:73:9:flash_read	32	static
+OS_flash.c:91:9:flash_erase	32	static

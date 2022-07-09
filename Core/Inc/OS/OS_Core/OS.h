@@ -20,10 +20,6 @@
 #include "OS/OS_Core/OS_Event.h"
 #include "OS/OS_Core/OS_MsgQ.h"
 
-#include "OS/OS_CLI/cli_conf.h"
-#include "OS/OS_CLI/cli.h"
-#include "OS/OS_CLI/cli_process.h"
-
 /**********************************************
  * PUBLIC FUNCTIONS
  *********************************************/

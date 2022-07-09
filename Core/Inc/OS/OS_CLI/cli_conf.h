@@ -3,10 +3,6 @@
 #define CLI_EN 1
 #endif
 
-#ifndef PRINT_ENABLE
-#define PRINT_ENABLE 1
-#endif
-
 //Amount of characters between a menu /action name and its description (menu... <--amount-->- description) (action <--amount-->- description)
 #ifndef CLI_AMOUNT_OF_ALIGN_CHARS
 #define CLI_AMOUNT_OF_ALIGN_CHARS 22

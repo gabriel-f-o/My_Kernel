@@ -5,7 +5,7 @@
  *      Author: Gabriel
  */
 
-#include "OS/OS.h"
+#include "OS/OS_Core/OS.h"
 #include "OS/OS_Core/OS_Internal.h"
 
 /**********************************************

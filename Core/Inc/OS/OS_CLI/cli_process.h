@@ -8,11 +8,38 @@
 #ifndef INC_OS_OS_CLI_CLI_PROCESS_H_
 #define INC_OS_OS_CLI_CLI_PROCESS_H_
 
-#include "OS/OS.h"
+#include "common.h"
 
+/**********************************************
+ * PUBLIC FUNCTIONS
+ * ********************************************/
+
+/***********************************************************************
+ * CLI Receive char (IRQ)
+ *
+ * @brief This function receives a character and puts in the cli buffer
+ *
+ **********************************************************************/
 void cli_rcv_char_cb_irq();
-void cli_init();
-void cli_process();
 
+/**********************************************
+ * PUBLIC FUNCTIONS
+ *********************************************/
+
+/***********************************************************************
+ * CLI INIT
+ *
+ * @brief This function initializes the CLI
+ *
+ **********************************************************************/
+void cli_init();
+
+/***********************************************************************
+ * CLI Process
+ *
+ * @brief This function treats the command sent by CLI
+ *
+ **********************************************************************/
+void cli_process();
 
 #endif /* INC_OS_OS_CLI_CLI_PROCESS_H_ */

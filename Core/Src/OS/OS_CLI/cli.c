@@ -5,16 +5,21 @@
  *      Author: INGE2
  */
 
-#include "OS/OS.h"
+#include "common.h"
 #include "main.h"
 
 #if ( defined(CLI_EN) && (CLI_EN == 1) )
+
+extern cliElement_t cliSystem[];
+extern cliElement_t cliFlash[];
 
 /**********************************************************
  * GLOBAL VARIABLES
  **********************************************************/
 
 cliElement_t cliMainMenu[] = {
+		cliSubMenuElement("flash", 		cliFlash, 		"Flash interface"),
+		cliSubMenuElement("system", 	cliSystem,		"System options"),
 		cliMenuTerminator()
 };
 

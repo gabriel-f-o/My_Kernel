@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-#include "OS/OS.h"
+#include "common.h"
 /**********************************************
  * CALLBACK FUNCIONS
  *********************************************/

@@ -95,21 +95,6 @@
 #define UNUSED_ARG(x)	((void)x)
 #endif
 
-#if defined(PRINT_ENABLE) && PRINT_ENABLE == 1
-//#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#define PRINTF(S, ...) 		printf(S, ## __VA_ARGS__)
-#define PRINT(S, ...) 		PRINTF("[%s:%03d]:" S, __FILENAME__, __LINE__ ## __VA_ARGS__)
-#define PRINTLN(S, ...) 	PRINT (S "\r\n", ## __VA_ARGS__)
-#else
-#define PRINTF(S, ...)
-#define PRINT(S, ...)
-#define PRINTLN(S, ...)
-#endif
-
-#ifndef ASSERT
-#define ASSERT(x)     if(!x) PRINTLN("Error occured");
-#endif
-
 /**********************************************
  * PUBLIC TYPES
  *********************************************/
