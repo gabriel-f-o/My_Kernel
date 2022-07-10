@@ -7,33 +7,133 @@
 
 #include "common.h"
 
-lfs_t lfs;
+/**********************************************************
+ * DEFINES
+ **********************************************************/
 
 #define CACHE_SIZE 1024
 
+/**********************************************************
+ * PUBLIC VARIABLES
+ **********************************************************/
 
-static uint8_t lfs_lookahead[4];
-static uint8_t lfs_read_cache[CACHE_SIZE];
-static uint8_t lfs_prog_cache[CACHE_SIZE];
+lfs_t lfs;
 
+/**********************************************************
+ * PRIVATE VARIABLES
+ **********************************************************/
+
+static uint8_t __align(8) lfs_lookahead[16];
+static uint8_t __align(8) lfs_read_cache[CACHE_SIZE];
+static uint8_t __align(8) lfs_prog_cache[CACHE_SIZE];
+
+/**********************************************************
+ * PRIVATE FUNCTIONS
+ **********************************************************/
+
+/***********************************************************************
+ * LFS Read Flash
+ *
+ * @brief This function reads a number of bytes starting at a position in flash
+ *
+ * @param const struct lfs_config *c	: [ in] Configuration file used
+ * @param lfs_block_t block				: [ in] The index of the block
+ * @param lfs_off_t off					: [ in] The offset inside the block
+ * @param void *buffer					: [out] Output buffer
+ * @param lfs_size_t size				: [ in] Size of the output buffer
+ *
+ * @return int : 0 if OK, != 0 if problem
+ **********************************************************************/
 static int lfs_flash_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size){
-	return 0;
+
+	/* Calculate first byte's address
+	 ------------------------------------------------*/
+	uint32_t addr = block * SECTOR_SIZE + off + LFS_BASE_ADDR;
+
+	/* Check arguments
+	 ------------------------------------------------*/
+	if(size == 0) return -5;
+	if(addr < LFS_BASE_ADDR) return -5;
+	if(addr >= LFS_END_ADDR) return -5;
+
+	/* Read from flash and returns 0 if OK
+	 ------------------------------------------------*/
+	int32_t ret = os_flash_read(addr, buffer, size);
+	ASSERT(ret >= 0);
+	return ret < 0 ? (int)ret : 0;
 }
 
+
+/***********************************************************************
+ * LFS Write Flash
+ *
+ * @brief This function writes a number of bytes starting at a position in flash
+ *
+ * @param const struct lfs_config *c	: [ in] Configuration file used
+ * @param lfs_block_t block				: [ in] The index of the block
+ * @param lfs_off_t off					: [ in] The offset inside the block
+ * @param const void *buffer			: [ in] Input buffer
+ * @param lfs_size_t size				: [ in] Size of the output buffer
+ *
+ * @return int : 0 if OK, != 0 if problem
+ **********************************************************************/
 static int lfs_flash_write(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size){
-	return 0;
+
+	/* Calculate address of the first byte
+	 ------------------------------------------------*/
+	uint32_t addr = block * SECTOR_SIZE + off + LFS_BASE_ADDR;
+
+	/* Write buffer in flash and return 0 if OK
+	 ------------------------------------------------*/
+	int32_t ret = os_flash_write(addr, (uint8_t*)buffer, size);
+	ASSERT(ret >= 0);
+	return ret < 0 ? (int)ret : 0;
 }
 
+
+/***********************************************************************
+ * LFS Erase Flash
+ *
+ * @brief This function erases a number of sectors in the flash, forcing them to 0xFF
+ *
+ * @param const struct lfs_config *c	: [ in] Configuration file used
+ * @param lfs_block_t block				: [ in] The index of the block
+ *
+ * @return int : 0 if OK, != 0 if problem
+ **********************************************************************/
 static int lfs_flash_erase(const struct lfs_config *c, lfs_block_t block){
-	return 0;
+
+	/* Calculate fist address
+	 ------------------------------------------------*/
+	uint32_t addr = block * SECTOR_SIZE + LFS_BASE_ADDR;
+
+	/* Erase block and return 0 if ok
+	 ------------------------------------------------*/
+	int32_t ret = os_flash_erase(addr, addr + SECTOR_SIZE - 1);
+	ASSERT(ret >= 0);
+	return ret < 0 ? (int)ret : 0;
 }
 
+
+/***********************************************************************
+ * LFS Sync Flash
+ *
+ * @brief This function synchronizes the state of the block. Unused in this application
+ *
+ * @param const struct lfs_config *c	: [ in] Configuration file used
+ *
+ * @return int : 0 if OK, != 0 if problem
+ **********************************************************************/
 static int lfs_flash_sync(const struct lfs_config *c){
 	return 0;
 }
 
+/**********************************************************
+ * PRIVATE VARIABLES
+ **********************************************************/
+
 // configuration of the filesystem is provided by this struct
-static struct lfs_config cfg = {
+static struct lfs_config lfs_cfg = {
 
 	// Read a region in a block. Negative error codes are propagated
     // to the user.
@@ -97,7 +197,55 @@ static struct lfs_config cfg = {
     .lookahead_buffer = lfs_lookahead,
 };
 
-void lfs_init(){
-	//cfg.block_size = SECTOR_SIZE;
-	//cfg.block_count = *_LFS_SIZE/SECTOR_SIZE;
+/**********************************************************
+ * PUBLIC FUNCTIONS
+ **********************************************************/
+
+
+/***********************************************************************
+ * LFS Init
+ *
+ * @brief This function initializes the file system
+ *
+ **********************************************************************/
+void os_lfs_init(){
+
+	/* Calculate sector size and number of sector using the pieces of information given by the linker
+	 ------------------------------------------------*/
+	lfs_cfg.block_size = SECTOR_SIZE;
+	lfs_cfg.block_count = (uint32_t)LFS_BASE_SIZE/SECTOR_SIZE;
+
+	/* Try to mount the file system
+	 ------------------------------------------------*/
+    int err = lfs_mount(&lfs, &lfs_cfg);
+    if(err < 0){
+
+    	PRINTLN("LFS mount fail %d", err);
+
+    	/* Reformat if we can't mount the filesystem
+    	 * this should only happen on the first boot
+    	 ------------------------------------------------*/
+        err = lfs_format(&lfs, &lfs_cfg);
+        if(err < 0){
+        	PRINTLN("LFS format fail %d", err);
+        }
+
+    	/* Try to mount the file system again
+    	 ------------------------------------------------*/
+        err = lfs_mount(&lfs, &lfs_cfg);
+        if(err < 0){
+        	PRINTLN("LFS mount fail %d", err);
+        }
+
+        else{
+        	PRINTLN("LFS Mount OK");
+        }
+    }
+
+	/* Print everything is fine
+	 ------------------------------------------------*/
+    else{
+    	PRINTLN("LFS Mount OK");
+    }
+
 }

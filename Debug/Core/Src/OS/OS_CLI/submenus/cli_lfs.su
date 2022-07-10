@@ -1,0 +1,8 @@
+cli_lfs.c:164:13:ls	344	static
+cli_lfs.c:147:13:delete	72	static
+cli_lfs.c:72:13:read	16	static
+cli_lfs.c:42:13:bRead	32	static
+cli_lfs.c:25:13:open	72	static
+cli_lfs.c:135:13:close	8	static
+cli_lfs.c:119:13:seek	8	static
+cli_lfs.c:102:13:write	208	static

@@ -2,6 +2,7 @@
 "Core/Src/OS/OS_CLI/cli_internal.o"
 "Core/Src/OS/OS_CLI/cli_process.o"
 "Core/Src/OS/OS_CLI/submenus/cli_flash.o"
+"Core/Src/OS/OS_CLI/submenus/cli_lfs.o"
 "Core/Src/OS/OS_CLI/submenus/cli_system.o"
 "Core/Src/OS/OS_Core/OS.o"
 "Core/Src/OS/OS_Core/OS_Callbacks.o"

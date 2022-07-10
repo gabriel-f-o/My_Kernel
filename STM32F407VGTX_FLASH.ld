@@ -33,14 +33,15 @@ _estack = ORIGIN(RAM) + LENGTH(RAM);	/* end of "RAM" Ram type memory */
 
 _Min_Heap_Size = 0x400 ;	/* required amount of heap  */
 _Min_Stack_Size = 0x200 ;	/* required amount of stack */
-_LFS_SIZE = 128K*6;
+_LFS_SIZE = 128K*5;
 
 /* Memories definition */
 MEMORY
 {
-  CCMRAM    (xrw)    : ORIGIN = 0x10000000,   LENGTH = 64K
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 128K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 1024K
+  CCMRAM    (xrw)   : ORIGIN = 0x10000000,   LENGTH = 64K
+  RAM    (xrw)      : ORIGIN = 0x20000000,   LENGTH = 128K
+  FLASH    (rx)     : ORIGIN = 0x8000000,   LENGTH = 1024K - _LFS_SIZE
+    LFS		(rx)	: ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = _LFS_SIZE
 }
 
 /* Sections */
@@ -178,14 +179,11 @@ SECTIONS
   
   .lfs : 
   {
-    . = ORIGIN(FLASH) + LENGTH(FLASH) - _LFS_SIZE;
-  	. = ALIGN(8);
 	_slfs = .;
 	__lfs_start = _slfs;
 	. = . + _LFS_SIZE;
-	. = ALIGN(8);
 	  _elfs = .;
 	  __lfs_end = .;
-	} >FLASH
-
+   } >LFS
+   
 }

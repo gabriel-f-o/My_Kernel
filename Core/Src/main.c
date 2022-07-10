@@ -99,19 +99,11 @@ int main(void)
 
 	PRINTLN("Init OS finished");
 
+	os_lfs_init();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	PRINTLN("0x%08X, 0x%08X", (int)LFS_BASE_ADDR, (int)(*((uint32_t*)LFS_BASE_ADDR)));
-	/*HAL_FLASH_Unlock();
-	PRINTLN("0x%08X, 0x%08X", LFS_BASE_ADDR, *((uint32_t*)LFS_BASE_ADDR));
-	uint32_t bb = 0xBEEF;
-	HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)LFS_BASE_ADDR, bb);
-	PRINTLN("0x%08X, 0x%08X", LFS_BASE_ADDR, *((uint32_t*)LFS_BASE_ADDR));
-	HAL_FLASH_Lock();*/
-
-	//HAL_FLASH
 	while(1)
 	{
 		cli_process();

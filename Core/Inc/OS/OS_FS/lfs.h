@@ -693,6 +693,15 @@ int lfs_migrate(lfs_t *lfs, const struct lfs_config *cfg);
 #endif
 #endif
 
+/***********************************************************************
+ * OS LFS Init
+ *
+ * @brief This function initializes the file system
+ *
+ **********************************************************************/
+void os_lfs_init();
+
+extern lfs_t lfs;
 
 #ifdef __cplusplus
 } /* extern "C" */
