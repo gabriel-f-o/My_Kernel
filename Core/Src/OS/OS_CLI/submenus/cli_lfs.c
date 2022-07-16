@@ -12,10 +12,15 @@
 #if ( defined(CLI_EN) && (CLI_EN == 1) )
 
 /**********************************************************
+ * PUBLIC VARIABLES
+ **********************************************************/
+
+char* cur_dir = ".";
+
+/**********************************************************
  * PRIVATE VARIABLES
  **********************************************************/
 
-static char* cur_dir = ".";
 static lfs_file_t lfs_file;
 
 /**********************************************************
@@ -203,19 +208,32 @@ static void ls(){
 	}
 }
 
+static void xmodem(){
+
+	/* Get arguments
+	 --------------------------------------------------*/
+	char name[50];
+	cli_get_string_argument(0, (uint8_t*)name, sizeof(name), NULL);
+
+	/* Open file
+	 --------------------------------------------------*/
+	xModem_rcv(name);
+}
+
 /**********************************************************
  * GLOBAL VARIABLES
  **********************************************************/
 
 cliElement_t cliLfs[] = {
-		cliActionElementDetailed("open", 	open, 	"s", 	"Open a file by name",  							NULL),
-		cliActionElementDetailed("bRead", 	bRead, 	"u", 	"Binary Read from the opened file",  				NULL),
-		cliActionElementDetailed("read", 	read, 	"u", 	"String Read from the opened file",  				NULL),
-		cliActionElementDetailed("write", 	write, 	"s", 	"Write into the opened file",  						NULL),
-		cliActionElementDetailed("seek", 	seek, 	"i", 	"Seek an absolute position in the opened file",  	NULL),
-		cliActionElementDetailed("del", 	delete,	"s", 	"Delete a file by name",  							NULL),
-		cliActionElementDetailed("close", 	close, 	"", 	"Closes the current file",  						NULL),
-		cliActionElementDetailed("ls", 		ls, 	"", 	"Prints all files in a directory",  				NULL),
+		cliActionElementDetailed("open", 		open, 		"s", 	"Open a file by name",  							NULL),
+		cliActionElementDetailed("bRead", 		bRead, 		"u", 	"Binary Read from the opened file",  				NULL),
+		cliActionElementDetailed("read", 		read, 		"u", 	"String Read from the opened file",  				NULL),
+		cliActionElementDetailed("write", 		write, 		"s", 	"Write into the opened file",  						NULL),
+		cliActionElementDetailed("seek", 		seek, 		"i", 	"Seek an absolute position in the opened file",  	NULL),
+		cliActionElementDetailed("del", 		delete,		"s", 	"Delete a file by name",  							NULL),
+		cliActionElementDetailed("close", 		close, 		"", 	"Closes the current file",  						NULL),
+		cliActionElementDetailed("ls", 			ls, 		"", 	"Prints all files in a directory",  				NULL),
+		cliActionElementDetailed("xmodem", 		xmodem, 	"s", 	"Receives a File via xmodem",  						NULL),
 		cliMenuTerminator()
 };
 

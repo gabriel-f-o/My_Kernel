@@ -12,6 +12,7 @@
 
 extern cliElement_t cliSystem[];
 extern cliElement_t cliFlash[];
+extern cliElement_t cliTasks[];
 extern cliElement_t cliLfs[];
 
 /**********************************************************
@@ -19,6 +20,7 @@ extern cliElement_t cliLfs[];
  **********************************************************/
 
 cliElement_t cliMainMenu[] = {
+		cliSubMenuElement("tasks", 		cliTasks, 		"Task interface"),
 		cliSubMenuElement("flash", 		cliFlash, 		"Flash interface"),
 		cliSubMenuElement("fs", 		cliLfs, 		"File system interface"),
 		cliSubMenuElement("system", 	cliSystem,		"System options"),

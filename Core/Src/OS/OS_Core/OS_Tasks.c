@@ -182,6 +182,7 @@ os_err_e os_task_init(char* main_name, int8_t main_task_priority, uint32_t inter
 
 	t->basePriority 		= main_task_priority;
 	t->priority		    	= main_task_priority;
+	t->pid					= 0;
 	t->state	 			= OS_TASK_READY;
 	t->pStack   			= NULL;
 	t->wakeCoutdown  		= 0;
@@ -286,16 +287,6 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 	if(stack_size < OS_MINIMUM_STACK_SIZE)  return OS_ERR_BAD_ARG;
 	if(os_init_get() == false)				return OS_ERR_NOT_READY;
 
-	/* If task exists, return it
-	 ------------------------------------------------------*/
-	if(name != NULL){
-		os_list_cell_t* obj = os_handle_list_searchByName(&os_obj_head, OS_OBJ_TASK, name);
-		if(obj != NULL){
-			*h = obj->element;
-			return OS_ERR_OK;
-		}
-	}
-
 	/* Alloc the task block
 	 ------------------------------------------------------*/
 	os_task_t* t = (os_task_t*)os_heap_alloc(sizeof(os_task_t));
@@ -312,6 +303,26 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 	 ------------------------------------------------------*/
 	if(stk == 0) return OS_ERR_INSUFFICIENT_HEAP;
 
+	/* Create a unique PID
+	 ------------------------------------------------------*/
+	uint16_t pid = 0;
+	uint32_t attempts = 0;
+	while(1){
+
+		/* Generate PID using the tick
+		 ------------------------------------------------------*/
+		uint32_t ms = os_getMsTick() + attempts;
+		pid = (uint16_t)( (ms & 0xFF) ^ ((ms >> 16) & 0xFF) );
+
+		/* Check if PID exists
+		 ------------------------------------------------------*/
+		if(os_task_getByPID(pid) == NULL){
+			break;
+		}
+
+		attempts++;
+	}
+
 	/* Init Task
 	 ------------------------------------------------------*/
 	t->obj.objUpdate	= 0;
@@ -321,8 +332,10 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 	t->obj.obj_take		= &os_task_objTake;
 	t->obj.name			= (char*) name;
 
+	t->fnPtr			= fn;
 	t->basePriority		= priority;
 	t->priority		    = priority;
+	t->pid				= pid;
 	t->state			= OS_TASK_READY;
 	t->wakeCoutdown	 	= 0;
 	t->stackBase		= (stk + stack_size);
@@ -580,6 +593,11 @@ os_err_e os_task_delete(os_handle_t h){
 	t->stackSize = 0;
 	t->wakeCoutdown = 0;
 
+	/* Free code and name
+	 ------------------------------------------------------*/
+	os_heap_free(t->fnPtr);
+	os_heap_free(h->name);
+
 	/* Delete task
 	 ------------------------------------------------------*/
 	os_heap_free(h);
@@ -743,4 +761,31 @@ os_task_state_e os_task_getState(os_handle_t h){
 }
 
 
+/***********************************************************************
+ * OS get task by PID
+ *
+ * @brief This function searches for a task using its PID
+ *
+ * @param uint16_t pid : [in] PID of the searched task
+ *
+ * @return os_list_cell_t* : reference to the cell containing the element or null if not found
+ **********************************************************************/
+os_handle_t os_task_getByPID(uint16_t pid){
+
+	/* Enter Critical Section
+	 * If it's searching / inserting a block, it can be interrupted and another task can change the list. In this case, the first task will blow up when returning
+	 ------------------------------------------------------*/
+	OS_DECLARE_IRQ_STATE;
+	OS_ENTER_CRITICAL();
+
+	/* Search position to insert
+	 ------------------------------------------------------*/
+	os_list_cell_t* it = os_head.head.next;
+	while(it != NULL && ((os_task_t*)it->element)->pid != pid){
+		it = it->next;
+	}
+
+	OS_EXIT_CRITICAL();
+	return it == NULL ? NULL : it->element;
+}
 

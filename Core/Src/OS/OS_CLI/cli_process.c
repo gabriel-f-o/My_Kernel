@@ -42,6 +42,9 @@ void cli_rcv_char_cb_irq(){
  *
  **********************************************************************/
 void cli_init(){
+	memset(cliBuffer, 0, sizeof(cliBuffer));
+	HAL_UART_Abort(&USART_CLI);
+	HAL_UART_AbortReceive_IT(&USART_CLI);
 	__HAL_UART_FLUSH_DRREGISTER(&USART_CLI);
 	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&c, 1);
 }

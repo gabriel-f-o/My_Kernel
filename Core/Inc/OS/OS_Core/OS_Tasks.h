@@ -38,6 +38,8 @@ typedef struct os_task_{
 	uint32_t	 		stackSize;			// Stores the stack size
 	uint32_t	 		stackBase;			// stores the stack base address
 
+	uint16_t			pid;				//Process ID
+	void*				fnPtr;				//Store the code reference
 	os_handle_t*	 	objWaited;			// Object this task is waiting for
 	size_t	 			sizeObjs;			// Number of objects in list
 	size_t	 			objWanted;			// Index of the object this task wants to get when it wakes up. Used when waiting one of multiple objects
@@ -176,6 +178,18 @@ void* os_task_getReturn(os_handle_t h);
  *
  **********************************************************************/
 os_task_state_e os_task_getState(os_handle_t h);
+
+
+/***********************************************************************
+ * OS get task by PID
+ *
+ * @brief This function searches for a task using its PID
+ *
+ * @param uint16_t pid : [in] PID of the searched task
+ *
+ * @return os_list_cell_t* : reference to the cell containing the element or null if not found
+ **********************************************************************/
+os_handle_t os_task_getByPID(uint16_t pid);
 
 
 /***********************************************************************

@@ -1,0 +1,2 @@
+xmodem.c:112:13:sendResponse	16	static
+xmodem.c:206:6:xModem_rcv	264	static

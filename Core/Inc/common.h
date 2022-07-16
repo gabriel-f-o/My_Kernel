@@ -13,6 +13,7 @@
 #include "OS/OS_CLI/cli_process.h"
 #include "OS/OS_Core/OS.h"
 
+#include "OS/OS_FS/xmodem.h"
 #include "OS/OS_FS/lfs_util.h"
 #include "OS/OS_FS/lfs_flash.h"
 #include "OS/OS_FS/lfs.h"
