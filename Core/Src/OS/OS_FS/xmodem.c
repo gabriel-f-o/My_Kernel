@@ -213,6 +213,7 @@ void xModem_rcv(char* path){
 	uint32_t address = 0;
 
 	lfs_file_t lfs_file;
+	lfs_remove(&lfs, path);
 	int32_t file_error = lfs_file_open(&lfs, &lfs_file, path, LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
 	if(file_error<0) {
 		return;
@@ -249,7 +250,8 @@ void xModem_rcv(char* path){
 			if (receivedBytes == (XMODEM_DATA_SIZE + 4)) {
 				xmodemParsePacket((XmodemPacket_t *)packet, &response);
 				if(response == XMODEM_CMD_ACK) {
-					if (lfs_file_write(&lfs, &lfs_file, ((XmodemPacket_t *)packet)->data, XMODEM_DATA_SIZE) >= 0) {
+					int err = lfs_file_write(&lfs, &lfs_file, ((XmodemPacket_t *)packet)->data, XMODEM_DATA_SIZE);
+					if (err >= 0) {
 						address += XMODEM_DATA_SIZE;
 					} else {
 						sendResponse(XMODEM_CMD_CAN);

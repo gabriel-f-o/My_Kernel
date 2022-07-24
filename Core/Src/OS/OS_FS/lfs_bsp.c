@@ -109,7 +109,7 @@ static int lfs_flash_erase(const struct lfs_config *c, lfs_block_t block){
 
 	/* Erase block and return 0 if ok
 	 ------------------------------------------------*/
-	int32_t ret = os_flash_erase(addr, addr + SECTOR_SIZE - 1);
+	int32_t ret = os_flash_erase(addr, 1);
 	ASSERT(ret >= 0);
 	return ret < 0 ? (int)ret : 0;
 }
@@ -213,7 +213,7 @@ void os_lfs_init(){
 	/* Calculate sector size and number of sector using the pieces of information given by the linker
 	 ------------------------------------------------*/
 	lfs_cfg.block_size = SECTOR_SIZE;
-	lfs_cfg.block_count = (uint32_t)LFS_BASE_SIZE/SECTOR_SIZE;
+	lfs_cfg.block_count = (uint32_t)LFS_TOTAL_SIZE/SECTOR_SIZE;
 
 	/* Try to mount the file system
 	 ------------------------------------------------*/

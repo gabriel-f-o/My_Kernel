@@ -31,7 +31,7 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 	if(len == 0) return -2;
 	if(buffer == NULL) return -2;
 	if(addr < FLASH_BASE_ADDR) return -2;
-	if(addr >= FLASH_MAX_ADDR) return -2;
+	if(addr >= FLASH_END_ADDR) return -2;
 
 	/* Wait for last operation
 	 ------------------------------------------------------*/
@@ -56,9 +56,9 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 		/* Check alignment and border requirements
 		 ------------------------------------------------------*/
 		uint32_t writePermitted = 0;
-		writePermitted = ( (addr + 1) <= FLASH_MAX_ADDR ) 				   ? 1 : writePermitted;
-		writePermitted = ( (addr % 2) == 0 && addr + 2 <= FLASH_MAX_ADDR ) ? 2 : writePermitted;
-		writePermitted = ( (addr % 4) == 0 && addr + 4 <= FLASH_MAX_ADDR ) ? 4 : writePermitted;
+		writePermitted = ( (addr + 1) <= FLASH_END_ADDR ) 				   ? 1 : writePermitted;
+		writePermitted = ( (addr % 2) == 0 && addr + 2 <= FLASH_END_ADDR ) ? 2 : writePermitted;
+		writePermitted = ( (addr % 4) == 0 && addr + 4 <= FLASH_END_ADDR ) ? 4 : writePermitted;
 
 		/* Calculates the number of bytes to write
 		 ------------------------------------------------------*/
@@ -72,8 +72,8 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 		/* Calculates the writing flag used
 		 ------------------------------------------------------*/
 		uint32_t writeFlag = FLASH_TYPEPROGRAM_BYTE;
-			 	 writeFlag = lenToWrite == 2 ? FLASH_TYPEPROGRAM_HALFWORD : writeFlag;
-			 	 writeFlag = lenToWrite == 4 ?     FLASH_TYPEPROGRAM_WORD : writeFlag;
+		writeFlag = lenToWrite == 2 ? FLASH_TYPEPROGRAM_HALFWORD : writeFlag;
+		writeFlag = lenToWrite == 4 ?     FLASH_TYPEPROGRAM_WORD : writeFlag;
 
 		/* Store data in a uint64_t to avoid possible alignment issues
 		 ------------------------------------------------------*/
@@ -132,13 +132,13 @@ int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
 	if(len == 0) return -2;
 	if(buffer == NULL) return -2;
 	if(addr < FLASH_BASE_ADDR) return -2;
-	if(addr >= FLASH_MAX_ADDR) return -2;
+	if(addr >= FLASH_END_ADDR) return -2;
 
 	/* Check border and calculates the amout of data to read
 	 ------------------------------------------------------*/
 	size_t readBytes = len;
-	if(addr + len > FLASH_MAX_ADDR){
-		readBytes -= addr + len - FLASH_MAX_ADDR;
+	if(addr + len > FLASH_END_ADDR){
+		readBytes -= addr + len - FLASH_END_ADDR;
 	}
 
 	/* Copy data into buffer
@@ -154,23 +154,54 @@ int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
 /***********************************************************************
  * OS Flash Erase
  *
- * @brief This function erases sectors from the internal flash, forcing every byte to 0xFF. The sectors to be erased are determined with the addresses passed.
- * All the sectors that have at least one byte in the range of addresses will be erased. e.g. addrBeg = 0x0809FFFF and addrEnd 0x080A0000, sectors 8 and 9 will be erased (from 0x08080000 to 0x080BFFFF inclusive)
+ * @brief This function erases sectors from the internal flash, forcing every byte to 0xFF.
+ * If the beginning address is not aligned with a sector, an error is thrown.
  *
- * @param uint32_t addrBeg	: [in] Beginning address
- * @param uint32_t addrEnd	: [in] End address
+ * The sectors are :
+ * 		Sector  0 : 0x0800 0000 - 0x0800 3FFF, size = 16Kb
+ * 		Sector  1 : 0x0800 4000 - 0x0800 7FFF, size = 16Kb
+ * 		Sector  2 : 0x0800 8000 - 0x0800 BFFF, size = 16Kb
+ * 		Sector  3 : 0x0800 C000 - 0x0800 FFFF, size = 16Kb
+ * 		Sector  4 : 0x0801 0000 - 0x0801 FFFF, size = 64Kb
+ * 		Sector  5 : 0x0802 0000 - 0x0803 FFFF, size = 128Kb
+ * 		Sector  6 : 0x0804 0000 - 0x0805 FFFF, size = 128Kb
+ *		Sector  7 : 0x0806 0000 - 0x0807 FFFF, size = 128Kb
+ *		Sector  8 : 0x0808 0000 - 0x0809 FFFF, size = 128Kb
+ *		Sector  9 : 0x080A 0000 - 0x080B FFFF, size = 128Kb
+ *		Sector 10 : 0x080C 0000 - 0x080D FFFF, size = 128Kb
+ * 		Sector 11 : 0x080E 0000 - 0x080F FFFF, size = 128Kb
+ *
+ * @param uint32_t addrBeg	: [in] Beginning address of the sector to erase
+ * @param uint32_t secNum   : [in] Number of sectors to erase
  *
  * @return int32_t : <0 if error. Otherwise the number of sectors erased
  *
  **********************************************************************/
-int32_t os_flash_erase(uint32_t addrBeg, uint32_t addrEnd){
+int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 
 	/* Check arguments
 	 ------------------------------------------------------*/
 	if(addrBeg < FLASH_BASE_ADDR) return -2;
-	if(addrBeg >= FLASH_MAX_ADDR) return -2;
-	if(addrEnd < FLASH_BASE_ADDR) return -2;
-	if(addrBeg > addrEnd) return -2;
+	if(addrBeg >= FLASH_END_ADDR) return -2;
+
+	/* Select first sector
+	 ------------------------------------------------------*/
+	int firstSector = -1;
+
+	if(addrBeg == 0x08000000) firstSector = FLASH_SECTOR_0;
+	if(addrBeg == 0x08004000) firstSector = FLASH_SECTOR_1;
+	if(addrBeg == 0x08008000) firstSector = FLASH_SECTOR_2;
+	if(addrBeg == 0x0800C000) firstSector = FLASH_SECTOR_3;
+	if(addrBeg == 0x08010000) firstSector = FLASH_SECTOR_4;
+	if(addrBeg == 0x08020000) firstSector = FLASH_SECTOR_5;
+	if(addrBeg == 0x08040000) firstSector = FLASH_SECTOR_6;
+	if(addrBeg == 0x08060000) firstSector = FLASH_SECTOR_7;
+	if(addrBeg == 0x08080000) firstSector = FLASH_SECTOR_8;
+	if(addrBeg == 0x080A0000) firstSector = FLASH_SECTOR_9;
+	if(addrBeg == 0x080C0000) firstSector = FLASH_SECTOR_10;
+	if(addrBeg == 0x080E0000) firstSector = FLASH_SECTOR_11;
+
+	if(firstSector < 0)	return -2;
 
 	/* Wait for operation to end
 	 ------------------------------------------------------*/
@@ -186,94 +217,37 @@ int32_t os_flash_erase(uint32_t addrBeg, uint32_t addrEnd){
 	if(ret != HAL_OK)
 		return -1;
 
-	/* Loop until there are sectors to erase
+	/* Calculates the maximum number of sectors we can erase, and cap accordingly
+	 ------------------------------------------------------*/
+	uint32_t sect_nb_max = (uint32_t) (11 - firstSector + 1);
+	secNum = sect_nb_max < secNum ? sect_nb_max : secNum;
+
+	/* Prepare erase configuration
 	 ------------------------------------------------------*/
 	bool error = 0;
-	uint32_t addrCur = addrBeg;
-	int32_t sectNum = 0;
-	while(addrCur <= addrEnd && addrCur < FLASH_MAX_ADDR){
+	uint32_t SectorError;
+	FLASH_EraseInitTypeDef eraseConf = {
+			.TypeErase    = FLASH_TYPEERASE_SECTORS, // Erase sectors, not mass erase
+			.Banks	      = FLASH_BANK_1,			 // Unused outside of mass erase
+			.Sector	      = (uint32_t) firstSector,	 // Inform first sector to erase
+			.NbSectors    = secNum,					 // Inform number of sectors to erase
+			.VoltageRange = FLASH_VOLTAGE_RANGE_3,	 // Select voltage range
+	};
 
-		/* Calculates which sector to erase
-		 ------------------------------------------------------*/
-		uint32_t Sector = 0;
-		sectNum++;
-		if(0x08000000 <= addrCur && addrCur <= 0x08003FFF){
-			Sector = 0;
-			addrCur &= 0xFFFFC000;
-			addrCur += 16*1024;
-		}
-		else if(0x08004000 <= addrCur && addrCur <= 0x08007FFF) {
-			Sector = 1;
-			addrCur &= 0xFFFFC000;
-			addrCur += 16*1024;
-		}
-		else if(0x08008000 <= addrCur && addrCur <= 0x0800BFFF) {
-			Sector =  2;
-			addrCur &= 0xFFFFC000;
-			addrCur += 16*1024;
-		}
-		else if(0x0800C000 <= addrCur && addrCur <= 0x0800FFFF) {
-			Sector =  3;
-			addrCur &= 0xFFFFC000;
-			addrCur += 16*1024;
-		}
-		else if(0x08010000 <= addrCur && addrCur <= 0x0801FFFF) {
-			Sector =  4;
-			addrCur &= 0xFFFF0000;
-			addrCur += 64*1024;
-		}
-		else if(0x08020000 <= addrCur && addrCur <= 0x0803FFFF) {
-			Sector =  5;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x08040000 <= addrCur && addrCur <= 0x0805FFFF) {
-			Sector =  6;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x08060000 <= addrCur && addrCur <= 0x0807FFFF) {
-			Sector =  7;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x08080000 <= addrCur && addrCur <= 0x0809FFFF) {
-			Sector =  8;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x080A0000 <= addrCur && addrCur <= 0x080BFFFF) {
-			Sector =  9;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x080C0000 <= addrCur && addrCur <= 0x080DFFFF) {
-			Sector =  10;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else if(0x080E0000 <= addrCur && addrCur <= 0x080FFFFF) {
-			Sector =  11;
-			addrCur &= 0xFFFE0000;
-			addrCur += 128*1024;
-		}
-		else{
-			error = 1;
-			break;
-		}
+	/* Erase sectors
+	 ------------------------------------------------------*/
+	ret = HAL_FLASHEx_Erase(&eraseConf, &SectorError);
+	ASSERT(ret == HAL_OK);
+	if(ret != HAL_OK){
+		error = 1;
+	}
 
-		/* Erase sector
-		 ------------------------------------------------------*/
-		FLASH_Erase_Sector(Sector, FLASH_VOLTAGE_RANGE_3);
-
-		/* Wait for operation to end
-		 ------------------------------------------------------*/
-		HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(10000);
-		ASSERT(ret == HAL_OK);
-		if(ret != HAL_OK){
-			error = 1;
-			break;
-		}
+	/* Wait for operation to end
+	 ------------------------------------------------------*/
+	ret = FLASH_WaitForLastOperation(1000);
+	ASSERT(ret == HAL_OK);
+	if(ret != HAL_OK){
+		error = 1;
 	}
 
 	/* Lock flash
@@ -284,5 +258,5 @@ int32_t os_flash_erase(uint32_t addrBeg, uint32_t addrEnd){
 		error = 1;
 	}
 
-	return error == 1 ? -1 : sectNum;
+	return error == 1 ? -1 : (int32_t)secNum;
 }

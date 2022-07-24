@@ -100,7 +100,6 @@ int main(void)
 	os_scheduler_start();
 
 	PRINTLN("Init OS finished");
-
 	os_lfs_init();
 	/* USER CODE END 2 */
 

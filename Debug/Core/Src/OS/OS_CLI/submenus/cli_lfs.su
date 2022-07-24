@@ -1,9 +1,9 @@
-cli_lfs.c:211:13:xmodem	64	static
-cli_lfs.c:169:13:ls	344	static
-cli_lfs.c:152:13:delete	72	static
-cli_lfs.c:77:13:read	16	static
-cli_lfs.c:47:13:bRead	32	static
 cli_lfs.c:30:13:open	72	static
-cli_lfs.c:140:13:close	8	static
-cli_lfs.c:124:13:seek	8	static
-cli_lfs.c:107:13:write	208	static
+cli_lfs.c:47:13:bRead	40	static
+cli_lfs.c:77:13:read	32	static
+cli_lfs.c:107:13:write	216	static
+cli_lfs.c:124:13:seek	24	static
+cli_lfs.c:140:13:close	16	static
+cli_lfs.c:152:13:delete	72	static
+cli_lfs.c:169:13:ls	336	static
+cli_lfs.c:211:13:xmodem	64	static

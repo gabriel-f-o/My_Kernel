@@ -40,7 +40,7 @@ static void exec(){
 	 --------------------------------------------------*/
 	char name[50];
 	size_t len = cli_get_string_argument(0, (uint8_t*)name, sizeof(name), NULL);
-	uint32_t addr = cli_get_uint32_argument(1, NULL);
+	//uint32_t addr = cli_get_uint32_argument(1, NULL);
 
 	/* Open file
 	 --------------------------------------------------*/
@@ -86,6 +86,7 @@ static void exec(){
 
 	/* Calculate main address
 	 --------------------------------------------------*/
+	uint32_t addr = ((uint32_t volatile * ) code)[1];
 	addr -= FLASH_BASE_ADDR;
 	addr += (uint32_t)&code[0];
 
@@ -109,6 +110,8 @@ static void kill(){
 	 ------------------------------------------------------*/
 	os_task_delete(h);
 
+	/* Feedback
+	 ------------------------------------------------------*/
 	if(h == NULL)
 		PRINTLN("Task PID %d not found", pid);
 	else{
@@ -116,14 +119,26 @@ static void kill(){
 	}
 }
 
+static void readELF(){
+
+	/* Get argument
+	 ------------------------------------------------------*/
+	char name[50];
+	cli_get_string_argument(0, (uint8_t*)name, sizeof(name), NULL);
+
+	void os_task_createProcess(char* file);
+	os_task_createProcess(name);
+}
+
 /**********************************************************
  * GLOBAL VARIABLES
  **********************************************************/
 
 cliElement_t cliTasks[] = {
-		cliActionElementDetailed("exec", 		exec, 		"su", 	"Executes a file",  								NULL),
+		cliActionElementDetailed("exec", 		exec, 		"s", 	"Executes a file",  								NULL),
 		cliActionElementDetailed("top", 		top, 		"", 	"Lists all tasks",  								NULL),
-		cliActionElementDetailed("kill", 		kill, 		"u", 	"Kill a task using PID",  								NULL),
+		cliActionElementDetailed("kill", 		kill, 		"u", 	"Kill a task using PID",  							NULL),
+		cliActionElementDetailed("readELF", 	readELF, 	"s", 	"Reads an ELF file",  								NULL),
 		cliMenuTerminator()
 };
 

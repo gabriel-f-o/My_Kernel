@@ -1,2 +1,5 @@
+xmodem.c:68:17:xmodemCrc	16	static
+xmodem.c:93:17:xmodemCrcStream	32	static
 xmodem.c:112:13:sendResponse	16	static
-xmodem.c:206:6:xModem_rcv	264	static
+xmodem.c:133:13:xmodemParsePacket	24	static
+xmodem.c:206:6:xModem_rcv	272	static

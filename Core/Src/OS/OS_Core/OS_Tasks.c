@@ -5,8 +5,10 @@
  *      Author: Gabriel
  */
 
+#include "common.h"
 #include "OS/OS_Core/OS.h"
 #include "OS/OS_Core/OS_Internal.h"
+#include "OS/OS_FS/lfs.h"
 
 /**********************************************
  * EXTERNAL VARIABLES
@@ -394,6 +396,146 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 	return err;
 }
 
+
+typedef struct{
+	uint8_t magic[4];	//Always 0x7F, 'E', 'L', 'F'
+	uint8_t class;		//This byte is set to either 1 or 2 to signify 32- or 64-bit format, respectively.
+	uint8_t data;		//This byte is set to either 1 or 2 to signify little or big endianness, respectively.
+	uint8_t version;	//Always 1
+	uint8_t os_abi;		//0x00 System V, 0x01 HP-UX, 0x02 NetBSD, 0x03 Linux, 0x04 GNU Hurd, 0x06 Solaris, 0x07 AIX (Monterey), 0x08 IRIX, 0x09 FreeBSD, 0x0A Tru64, 0x0B Novell Modesto, 0x0C OpenBSD, 0x0D OpenVMS, 0x0E NonStop Kernel, 0x0F AROS, 0x10 FenixOS, 0x11 Nuxi CloudABI, 0x12 Stratus Technologies OpenVOS
+	uint8_t abi_version;
+	uint8_t pad[7];		//Padding. Unused
+} __packed os_elfId_t;
+
+typedef struct{
+	os_elfId_t 	e_ident;
+	uint16_t	e_type;
+	uint16_t	e_machine;
+	uint32_t	e_version;		//Set to 1 for the original version of ELF.
+	uint32_t	e_entry;		//This is the memory address of the entry point from where the process starts executing.
+	uint32_t	e_phoff;		//Points to the start of the program header table.
+	uint32_t	e_shoff;		//Points to the start of the section header table.
+	uint32_t 	e_flags;		//Interpretation of this field depends on the target architecture.
+	uint16_t 	e_ehsize;		//Contains the size of this header, normally 64 Bytes for 64-bit and 52 Bytes for 32-bit format.
+	uint16_t	e_phentsize;	//Contains the size of a program header table entry.
+	uint16_t	e_phnum;		//Contains the number of entries in the program header table.
+	uint16_t	e_shentsize;	//Contains the size of a section header table entry.
+	uint16_t	e_shnum;		//Contains the number of entries in the section header table.
+	uint16_t	e_shstrndx;		//Contains index of the section header table entry that contains the section names.h
+
+} __packed os_elfHeader_t;
+
+typedef struct{
+	uint32_t 	p_type;		//0x00000000 PT_NULL Program header table entry unused., 0x00000001 PT_LOAD Loadable segment. 0x00000002 PT_DYNAMIC Dynamic linking information. 0x00000003 PT_INTERP Interpreter information. 0x00000004 PT_NOTE Auxiliary information. 0x00000005 PT_SHLIB Reserved. 0x00000006 PT_PHDR Segment containing program header table itself. 0x00000007 PT_TLS Thread-Local Storage template.
+	uint32_t  	p_offset;	//Offset of the segment in the file image.
+	uint32_t	p_vaddr;	//Virtual address of the segment in memory.
+	uint32_t	p_paddr;	//On systems where physical address is relevant, reserved for segment's physical address.
+	uint32_t	p_filesz;	//Size in bytes of the segment in the file image. May be 0.
+	uint32_t 	p_memsz;	//Size in bytes of the segment in memory. May be 0.
+	uint32_t 	p_flags;	//Segment-dependent flags (position for 32-bit structure).
+	uint32_t	p_align;	//0 and 1 specify no alignment. Otherwise should be a positive, integral power of 2, with p_vaddr equating p_offset modulus p_align
+} __packed os_elfProgramHeader_t;
+
+static int os_checkElfHeader(os_elfHeader_t* header, lfs_file_t* lfs_file){
+
+	int err = lfs_file_read(&lfs, lfs_file, header, sizeof(*header));
+	if(err < 0){
+		PRINTLN("read error %d", err);
+		return err;
+	}
+
+	if(header->e_ident.magic[0] != 0x7F || header->e_ident.magic[1] != 'E' || header->e_ident.magic[2] != 'L' || header->e_ident.magic[3] != 'F'){
+		return -1;
+	}
+
+	if(header->e_ident.class != 1 || header->e_ident.data != 1 || header->e_ident.version != 1){
+		return -1;
+	}
+
+	if(header->e_machine != 40 || header->e_version != 1){
+		return -1;
+	}
+
+	return 0;
+}
+
+uint8_t benga[2048];
+static int os_loadElfSegments(os_elfHeader_t* header, lfs_file_t* lfs_file){
+
+	os_elfProgramHeader_t data;
+	uint32_t memToAlloc = 0;
+
+	for(uint32_t i = 0; i < header->e_phnum; i++){
+		lfs_file_seek(&lfs, lfs_file, header->e_phoff + i * header->e_phentsize, LFS_SEEK_SET);
+
+		int err = lfs_file_read(&lfs, lfs_file, &data, sizeof(data));
+		if(err < 0){
+			PRINTLN("read error %d", err);
+			return err;
+		}
+
+		memToAlloc += (data.p_memsz + 16) & ~0xF ;
+	}
+
+	//uint8_t* codeSpace = (uint8_t*)os_heap_alloc(memToAlloc);
+int pos = 0;
+uint32_t vAddr;
+int jeba = 0;
+	for(uint32_t i = 0; i < header->e_phnum; i++){
+		lfs_file_seek(&lfs, lfs_file, header->e_phoff + i * header->e_phentsize, LFS_SEEK_SET);
+
+		int err = lfs_file_read(&lfs, lfs_file, &data, sizeof(data));
+		if(err < 0){
+			PRINTLN("read error %d", err);
+			return err;
+		}
+
+		lfs_file_seek(&lfs, lfs_file, data.p_offset, LFS_SEEK_SET);
+		err = lfs_file_read(&lfs, lfs_file, &benga[pos], data.p_filesz);
+		if(err < 0){
+			PRINTLN("read error %d", err);
+			return err;
+		}
+		vAddr = data.p_vaddr;
+		pos += (err + 16) & ~0xF;
+		jeba = jeba == 0 ? pos : jeba;
+
+	}
+
+	uint32_t* p = (uint32_t*)&benga[852];
+	uint32_t addr = *p;
+	addr = addr - vAddr + jeba + (uint32_t)benga;
+	*p = addr;
+
+	uint32_t jumpAddr = *((uint32_t*)&benga[4]);
+	jumpAddr = jumpAddr - FLASH_BASE_ADDR + (uint32_t)benga;
+	((int(*)())jumpAddr)();
+
+	return 0;
+
+}
+
+void os_task_createProcess(char* file){
+
+	/* Open file
+	 --------------------------------------------------*/
+	lfs_file_t lfs_file;
+	int err = lfs_file_open(&lfs, &lfs_file, file, LFS_O_RDONLY);
+	if(err < 0){
+		PRINTLN("Open Error");
+		return;
+	}
+
+	os_elfHeader_t header;
+	if(os_checkElfHeader(&header, &lfs_file) < 0) {
+		lfs_file_close(&lfs, &lfs_file);
+		PRINTLN("error in header");
+		return;
+	}
+
+	os_loadElfSegments(&header, &lfs_file);
+	lfs_file_close(&lfs, &lfs_file);
+}
 
 /***********************************************************************
  * OS Task End

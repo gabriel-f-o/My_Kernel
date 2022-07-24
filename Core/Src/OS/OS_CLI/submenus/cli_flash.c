@@ -22,8 +22,8 @@ static char const * const readWriteArgs[] = {
 };
 
 static char const * const eraseArgs[] = {
-		"Address of the first byte",
-		"Address to stop (other bytes in this sector will not be erased)",
+		"Address of the first byte. Must be aligned with a sector",
+		"Number of sectors to erase",
 		NULL,
 };
 
@@ -84,11 +84,11 @@ static void erase(){
 	/* Get arguments
 	 --------------------------------------------------*/
 	uint32_t addrB = cli_get_uint32_argument(0, NULL);
-	uint32_t addrE = cli_get_uint32_argument(1, NULL);
+	uint32_t num = cli_get_uint32_argument(1, NULL);
 
 	/* Erase sectors
 	 --------------------------------------------------*/
-	int32_t erase = os_flash_erase(addrB, addrE);
+	int32_t erase = os_flash_erase(addrB, num);
 	ASSERT(erase >= 0);
 
 	/* Feedback
