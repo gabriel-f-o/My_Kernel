@@ -272,6 +272,7 @@ bool os_task_must_yeild(){
  * @param os_handle_t* h		: [out] handle to object
  * @param char* name 			: [ in] name of the task
  * @param void* (*fn)(void*) 	: [ in] task's main function to be called
+ * @param os_task_mode_e mode	: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
  * @param int8_t priority		: [ in] A priority to the task (0 is lowest priority) cannot be negative
  * @param uint32_t stack_size 	: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
  * @param void* arg				: [ in] Argument to be passed to the task
@@ -279,13 +280,14 @@ bool os_task_must_yeild(){
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), int8_t priority, uint32_t stack_size, void* arg){
+os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg){
 
 	/* Check for argument errors
 	 ------------------------------------------------------*/
 	if(h == NULL) 							return OS_ERR_BAD_ARG;
 	if(fn == NULL) 							return OS_ERR_BAD_ARG;
 	if(priority < 0) 						return OS_ERR_BAD_ARG;
+	if(mode >= __OS_TASK_MODE_MAX) 			return OS_ERR_BAD_ARG;
 	if(stack_size < OS_MINIMUM_STACK_SIZE)  return OS_ERR_BAD_ARG;
 	if(os_init_get() == false)				return OS_ERR_NOT_READY;
 
@@ -353,7 +355,7 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 	 ------------------------------------------------------*/
 	*--t->pStack = (uint32_t) 0x01000000;	 	//xPSR (bit 24 must be 1 otherwise BOOM)
 	*--t->pStack = (uint32_t) fn;				//Return
-	*--t->pStack = (uint32_t) &os_task_return;  //LR
+	*--t->pStack = (mode == OS_TASK_MODE_RETURN) ? (uint32_t) &os_task_return : (uint32_t) &os_task_end;  //LR
 	*--t->pStack = (uint32_t) 0;				//R12
 	*--t->pStack = (uint32_t) 0;			 	//R3
 	*--t->pStack = (uint32_t) 0;			 	//R2

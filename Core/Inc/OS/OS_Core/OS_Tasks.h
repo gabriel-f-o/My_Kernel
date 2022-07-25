@@ -16,6 +16,14 @@
  * PUBLIC TYPES
  *********************************************/
 
+/* Tasks mode
+ ---------------------------------------------------*/
+typedef enum{
+	OS_TASK_MODE_RETURN,
+	OS_TASK_MODE_DELETE,
+	__OS_TASK_MODE_MAX,
+}os_task_mode_e;
+
 /* Tasks states
  ---------------------------------------------------*/
 typedef enum{
@@ -62,6 +70,7 @@ typedef struct os_task_{
  * @param os_handle_t* h		: [out] handle to object
  * @param char* name 			: [ in] name of the task
  * @param void* (*fn)(void*) 	: [ in] task's main function to be called
+ * @param os_task_mode_e mode	: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
  * @param int8_t priority		: [ in] A priority to the task (0 is lowest priority) cannot be negative
  * @param uint32_t stack_size 	: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
  * @param void* arg				: [ in] Argument to be passed to the task
@@ -69,7 +78,7 @@ typedef struct os_task_{
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), int8_t priority, uint32_t stack_size, void* arg);
+os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg);
 
 
 /***********************************************************************

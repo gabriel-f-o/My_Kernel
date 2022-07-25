@@ -87,6 +87,6 @@ os_err_e os_init(char* main_name, int8_t main_task_priority, uint32_t interrput_
 	 ------------------------------------------------------*/
 	os_init_done = ret == OS_ERR_OK ? 1 : 0;
 
-	return os_task_create(&idle_task, idle_name, os_idle_task_fn, 0, idle_stack_size, NULL);
+	return os_task_create(&idle_task, idle_name, os_idle_task_fn, OS_TASK_MODE_DELETE, 0, idle_stack_size, NULL);
 }
 

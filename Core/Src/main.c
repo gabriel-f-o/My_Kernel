@@ -64,7 +64,6 @@ void SystemClock_Config(void);
  * @brief  The application entry point.
  * @retval int
  */
-uint8_t cpy[1024*5];
 
 int main(void)
 {
@@ -105,9 +104,17 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	uint32_t tick_before = HAL_GetTick();
 	while(1)
 	{
 		cli_process();
+
+		uint32_t tick_now = HAL_GetTick();
+		if(tick_now - tick_before > 1000){
+			HAL_GPIO_TogglePin(LED_ORANGE_GPIO_Port, LED_ORANGE_Pin);
+			tick_before = tick_now;
+		}
+
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

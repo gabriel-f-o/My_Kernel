@@ -210,14 +210,24 @@ static void ls(){
 
 static void xmodem(){
 
+	/* Do not execute twice
+	 --------------------------------------------------*/
+	if(xModem_getState() == 1) return;
+
 	/* Get arguments
 	 --------------------------------------------------*/
 	char name[50];
-	cli_get_string_argument(0, (uint8_t*)name, sizeof(name), NULL);
+	size_t len = cli_get_string_argument(0, (uint8_t*)name, sizeof(name), NULL);
+
+	/* Store name in heap
+	 --------------------------------------------------*/
+	char* arg = os_heap_alloc(len + 1);
+	snprintf(arg, len + 1, "%s", name);
 
 	/* Open file
 	 --------------------------------------------------*/
-	xModem_rcv(name);
+	os_handle_t h;
+	os_task_create(&h, "xmodem", (void*(*)(void*))xModem_rcv, OS_TASK_MODE_DELETE, 11, 5 * OS_DEFAULT_STACK_SIZE, arg);
 }
 
 /**********************************************************

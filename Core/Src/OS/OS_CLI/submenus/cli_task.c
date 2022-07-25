@@ -93,7 +93,7 @@ static void exec(){
 	/* Create task
 	 --------------------------------------------------*/
 	os_handle_t h;
-	os_task_create(&h, taskName, (void* (*)(void*))(addr), 10, OS_DEFAULT_STACK_SIZE, NULL);
+	os_task_create(&h, taskName, (void* (*)(void*))(addr), OS_TASK_MODE_DELETE, 10, OS_DEFAULT_STACK_SIZE, NULL);
 }
 
 static void kill(){

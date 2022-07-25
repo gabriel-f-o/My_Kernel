@@ -38,9 +38,9 @@ Core/Src/usart.o: ../Core/Src/usart.c ../Core/Inc/usart.h \
  ../Core/Inc/OS/OS_Core/OS_Tick.h ../Core/Inc/OS/OS_Core/OS_Scheduler.h \
  ../Core/Inc/OS/OS_Core/OS_Sem.h ../Core/Inc/OS/OS_Core/OS_Event.h \
  ../Core/Inc/OS/OS_Core/OS_MsgQ.h ../Core/Inc/OS/OS_FS/xmodem.h \
- ../Core/Inc/OS/OS_FS/lfs_util.h ../Core/Inc/OS/OS_FS/lfs_flash.h \
- ../Core/Inc/OS/OS_FS/lfs.h ../Core/Inc/OS/OS_FS/lfs_util.h \
- ../Core/Inc/OS/OS_Drivers/OS_flash.h
+ ../Core/Inc/OS/OS_FS/lfs_util.h ../Core/Inc/OS/OS_Core/OS.h \
+ ../Core/Inc/OS/OS_FS/lfs_flash.h ../Core/Inc/OS/OS_FS/lfs.h \
+ ../Core/Inc/OS/OS_FS/lfs_util.h ../Core/Inc/OS/OS_Drivers/OS_flash.h
 
 ../Core/Inc/usart.h:
 
@@ -147,6 +147,8 @@ Core/Src/usart.o: ../Core/Src/usart.c ../Core/Inc/usart.h \
 ../Core/Inc/OS/OS_FS/xmodem.h:
 
 ../Core/Inc/OS/OS_FS/lfs_util.h:
+
+../Core/Inc/OS/OS_Core/OS.h:
 
 ../Core/Inc/OS/OS_FS/lfs_flash.h:
 

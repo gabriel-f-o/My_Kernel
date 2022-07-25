@@ -1,4 +1,4 @@
-cli_task.c:24:13:top	24	static
-cli_task.c:37:13:exec	184	static
-cli_task.c:99:13:kill	24	static
 cli_task.c:122:13:readELF	64	static
+cli_task.c:99:13:kill	16	static
+cli_task.c:24:13:top	32	static
+cli_task.c:37:13:exec	176	static

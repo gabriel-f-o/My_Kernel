@@ -431,9 +431,22 @@ os_err_e os_list_remove(os_list_head_t* head, void* el){
 		it = it->next;
 	}
 
+	/* Update first
+	 ------------------------------------------------------*/
+	if(pCell == head->first){
+		head->first = head->first->next;
+	}
+
+	/* Update last
+	 ------------------------------------------------------*/
+	if(pCell == head->last){
+		head->last = (head->last->prev == &head->head) ? NULL : head->last->prev;
+	}
+
 	/* Kill cell
 	 ------------------------------------------------------*/
 	pPrev->next = pPrev->next->next;
+	if(pCell->next != NULL) pCell->next->prev = pCell->prev;
 
 	/* Reduce size and return
 	 ------------------------------------------------------*/

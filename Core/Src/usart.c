@@ -22,6 +22,9 @@
 
 /* USER CODE BEGIN 0 */
 #include "common.h"
+
+extern os_handle_t xmodem_evt_rcv;
+
 /**********************************************
  * CALLBACK FUNCIONS
  *********************************************/
@@ -35,7 +38,12 @@
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart == &USART_CLI){
-		cli_rcv_char_cb_irq();
+		if(xModem_getState() == 1){
+			os_evt_set(xmodem_evt_rcv);
+		}
+		else{
+			cli_rcv_char_cb_irq();
+		}
 	}
 }
 

@@ -44,11 +44,18 @@ typedef struct{
 }__packed XmodemPacket_t;
 
 /**********************************************************
+ * GLOBAL VARIABLES
+ **********************************************************/
+
+os_handle_t xmodem_evt_rcv;
+
+/**********************************************************
  * PRIVATE VARIABLES
  **********************************************************/
 
 static uint8_t packetNumber;
 static bool started;
+static os_xmodem_state xmodem_state;
 
 /**********************************************************
  * PRIVATE FUNCTIONS
@@ -196,6 +203,18 @@ static void xmodemParsePacket(XmodemPacket_t *packet, uint8_t *response)
  **********************************************************/
 
 /***********************************************************************
+ * XMODEM Get State
+ *
+ * @brief This functions gets the state of the XMODEM protocol
+ *
+ * @return bool : (1) on going, (0) idle
+ *
+ **********************************************************************/
+os_xmodem_state xModem_getState(){
+	return xmodem_state;
+}
+
+/***********************************************************************
  * XMODEM Receive
  *
  * @brief This functions receives a file via XMODEM protocol
@@ -203,8 +222,10 @@ static void xmodemParsePacket(XmodemPacket_t *packet, uint8_t *response)
  * @param char* path : [in] the name of the file to create
  *
  **********************************************************************/
-void xModem_rcv(char* path){
+void* xModem_rcv(char* path){
 
+	xmodem_state = OS_XMODEM_STATE_RUN;
+	os_err_e err;
 	XmodemState_t state = XMODEM_STATE_WAIT_TO_START;
 	uint8_t packet[133];
 	uint8_t response = 0;
@@ -212,11 +233,17 @@ void xModem_rcv(char* path){
 	uint16_t receivedBytes;
 	uint32_t address = 0;
 
+	if(os_evt_create(&xmodem_evt_rcv, OS_EVT_MODE_AUTO, NULL) != OS_ERR_OK){
+		xmodem_state = OS_XMODEM_STATE_STOP;
+		return NULL;
+	}
+
 	lfs_file_t lfs_file;
 	lfs_remove(&lfs, path);
-	int32_t file_error = lfs_file_open(&lfs, &lfs_file, path, LFS_O_RDWR | LFS_O_CREAT | LFS_O_TRUNC);
+	int32_t file_error = lfs_file_open(&lfs, &lfs_file, path, LFS_O_RDWR | LFS_O_CREAT);
 	if(file_error<0) {
-		return;
+		xmodem_state = OS_XMODEM_STATE_STOP;
+		return NULL;
 	}
 
 	HAL_UART_Abort(&USART_CLI);
@@ -241,12 +268,14 @@ void xModem_rcv(char* path){
 				sendResponse(response);
 			}
 		}
-		HAL_StatusTypeDef stat = HAL_UART_Receive(&USART_CLI, packet, 1, 1000);
-		receivedBytes = stat == HAL_OK ? 1 : 5;
+		HAL_UART_Receive_IT(&USART_CLI, packet, 1);
+		os_obj_single_wait(xmodem_evt_rcv, 1000, &err);
+		receivedBytes = err == OS_ERR_OK ? 1 : 5;
 		if (receivedBytes == 1 && packet[0] == XMODEM_CMD_SOH) {
 			state = XMODEM_STATE_IN_PROGRESS;
-			HAL_StatusTypeDef stat = HAL_UART_Receive(&USART_CLI, packet + 1, XMODEM_DATA_SIZE + 4, 1000);
-			receivedBytes = stat == HAL_OK ? (XMODEM_DATA_SIZE + 4) : 5;
+			HAL_UART_Receive_IT(&USART_CLI, packet + 1, XMODEM_DATA_SIZE + 4);
+			os_obj_single_wait(xmodem_evt_rcv, 1000, &err);
+			receivedBytes = err == OS_ERR_OK ? (XMODEM_DATA_SIZE + 4) : 5;
 			if (receivedBytes == (XMODEM_DATA_SIZE + 4)) {
 				xmodemParsePacket((XmodemPacket_t *)packet, &response);
 				if(response == XMODEM_CMD_ACK) {
@@ -279,14 +308,17 @@ void xModem_rcv(char* path){
 		}
 	}
 
-	int err = lfs_file_close(&lfs, &lfs_file);
-	if(err < 0)
-		PRINTLN("LFS close return error ! %d", err);
+	int lfs_err = lfs_file_close(&lfs, &lfs_file);
+	if(lfs_err < 0)
+		PRINTLN("LFS close return error ! %d", lfs_err);
 
 	if(state == XMODEM_STATE_FAILED){
 		lfs_remove(&lfs, path);
 	}
 
+	os_heap_free(path);
+	xmodem_state = OS_XMODEM_STATE_STOP;
 
 	cli_init();
+	return NULL;
 }
