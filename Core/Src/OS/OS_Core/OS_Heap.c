@@ -65,10 +65,19 @@ static void* os_heap_AllocateBeginning(os_heap_header_t* p, uint32_t size){
 	os_heap_header_t* newBlock   = p;
 	os_heap_header_t* newTopHead = (os_heap_header_t*) ( (uint32_t) (newBlock) + sizeof(os_heap_header_t) + size);
 
-	/* Add Block to list
+	/* If next header does not exist, create it
 	 ---------------------------------------------------*/
-	newTopHead->addr_next = newBlock->addr_next != (uint32_t)newTopHead ? newBlock->addr_next : newTopHead->addr_next;
-	newBlock->addr_next	  = (uint32_t) newTopHead;
+	if(newBlock->addr_next != (uint32_t)newTopHead){
+
+		/* Add Block to list
+		 ---------------------------------------------------*/
+		newTopHead->addr_next = newBlock->addr_next;
+		newBlock->addr_next	  = (uint32_t) newTopHead;
+
+		/* Mark new block head as unused
+		 ---------------------------------------------------*/
+		newTopHead->block_used = 0;
+	}
 
 	/* Mark block as used memory
 	 ---------------------------------------------------*/
@@ -99,13 +108,22 @@ static void* os_heap_AllocateEnd(os_heap_header_t* p, uint32_t size){
 	/* Get references to manipulate
 	 ---------------------------------------------------*/
 	uint32_t block_size = os_heap_BlockGetSize(p);
-	os_heap_header_t* newBlock   = (os_heap_header_t*) ( (uint32_t)p + block_size - size - sizeof(os_heap_header_t) );
 	os_heap_header_t* oldTopHead = (os_heap_header_t*) (p);
+	os_heap_header_t* newBlock   = (os_heap_header_t*) ( (uint32_t)p + block_size - size - sizeof(os_heap_header_t) );
 
-	/* Add Block to list
+	/* Create new header if needed
 	 ---------------------------------------------------*/
-	newBlock->addr_next   = oldTopHead->addr_next;
-	oldTopHead->addr_next = newBlock != oldTopHead ? (uint32_t) newBlock : oldTopHead->addr_next;
+	if(newBlock != oldTopHead){
+
+		/* Add Block to list
+		 ---------------------------------------------------*/
+		newBlock->addr_next = oldTopHead->addr_next;
+		oldTopHead->addr_next = (uint32_t)newBlock;
+
+		/* Mark old block head as unused
+		 ---------------------------------------------------*/
+		oldTopHead->block_used = 0;
+	}
 
 	/* Mark block as used memory
 	 ---------------------------------------------------*/

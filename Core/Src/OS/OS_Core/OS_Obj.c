@@ -128,8 +128,24 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 
 				/* Take object
 				 ---------------------------------------------------*/
-				if(objList[i]->obj_take != NULL) objList[i]->obj_take(objList[i], os_cur_task->element);
+				os_err_e retErr = (objList[i]->obj_take != NULL) ? objList[i]->obj_take(objList[i], os_cur_task->element) : OS_ERR_UNKNOWN;
 
+				/* Handles errors
+				 ---------------------------------------------------*/
+				if(retErr != OS_ERR_OK){
+
+					/* Releases any mutex taken
+					 ---------------------------------------------------*/
+					for(int j = 0; j < i; j++){
+						if(objList[j]->type == OS_OBJ_MUTEX){
+							os_mutex_release(objList[j]);
+						}
+					}
+
+					OS_EXIT_CRITICAL();
+					if(err != NULL) *err = retErr;
+					return NULL;
+				}
 				/* Remove task from block list if needed
 				 ---------------------------------------------------*/
 				if(blocked) {
@@ -176,7 +192,12 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 
 			/* Take object
 			 ---------------------------------------------------*/
-			if(objList[takingPos]->obj_take != NULL) objList[takingPos]->obj_take(objList[takingPos], os_cur_task->element);
+			os_err_e retErr = (objList[takingPos]->obj_take != NULL) ? objList[takingPos]->obj_take(objList[takingPos], os_cur_task->element) : OS_ERR_UNKNOWN;
+			if(retErr != OS_ERR_OK){
+				OS_EXIT_CRITICAL();
+				if(err != NULL) *err = retErr;
+				return NULL;
+			}
 
 			/* Update prio from current task
 			 ---------------------------------------------------*/
@@ -272,9 +293,9 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 		((os_task_t*)os_cur_task->element)->state 			= OS_TASK_BLOCKED;
 		((os_task_t*)os_cur_task->element)->wakeCoutdown 	= timeout_ticks;
 		((os_task_t*)os_cur_task->element)->objWaited 		= objList;
-		((os_task_t*)os_cur_task->element)->sizeObjs			= objNum;
+		((os_task_t*)os_cur_task->element)->sizeObjs		= objNum;
 		((os_task_t*)os_cur_task->element)->objWanted		= 0xFFFFFFFF;
-		((os_task_t*)os_cur_task->element)->waitFlag			= waitFlag;
+		((os_task_t*)os_cur_task->element)->waitFlag		= waitFlag;
 
 		/* If not yet blocked
 		 ---------------------------------------------------*/
@@ -283,7 +304,33 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 			/* Add task to object's block list if not already
 			 ---------------------------------------------------*/
 			for(size_t i = 0; i < objNum; i++){
-				os_list_add(objList[i]->blockList, (os_handle_t)os_cur_task->element, OS_LIST_FIRST);
+				os_err_e retErr = os_list_add(objList[i]->blockList, (os_handle_t)os_cur_task->element, OS_LIST_FIRST);
+
+				/* Handle heap error
+				 ---------------------------------------------------*/
+				if(retErr != OS_ERR_OK){
+
+					/* Remove everything so far
+					 ---------------------------------------------------*/
+					for(size_t j = 0; j < i; j++){
+						os_list_remove(objList[j]->blockList, (os_handle_t)os_cur_task->element);
+					}
+
+					/* Revert structure
+					 ---------------------------------------------------*/
+					((os_task_t*)os_cur_task->element)->state 			= OS_TASK_READY;
+					((os_task_t*)os_cur_task->element)->wakeCoutdown 	= 0;
+					((os_task_t*)os_cur_task->element)->objWaited 		= NULL;
+					((os_task_t*)os_cur_task->element)->sizeObjs		= 0;
+					((os_task_t*)os_cur_task->element)->objWanted		= 0xFFFFFFFF;
+
+					/* return
+					 ---------------------------------------------------*/
+					OS_EXIT_CRITICAL();
+					if(err != NULL) *err = OS_ERR_INSUFFICIENT_HEAP;
+					return NULL;
+				}
+
 				os_obj_updatePrio(objList[i]);
 			}
 

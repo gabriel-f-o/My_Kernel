@@ -43,10 +43,13 @@ static uint32_t os_msgQ_getFreeCount(os_handle_t h){
  * @param os_handle_t h 			: [in] object to take
  * @param os_handle_t takingTask	: [in] handle to the task that is taking the object
  *
+ * @return os_err_e : 0 if OK
  **********************************************************************/
-static void os_msgQ_objTake(os_handle_t h, os_handle_t takingTask){
+static os_err_e os_msgQ_objTake(os_handle_t h, os_handle_t takingTask){
 	UNUSED_ARG(h);
 	UNUSED_ARG(takingTask);
+
+	return OS_ERR_OK;
 }
 
 /**********************************************
@@ -103,10 +106,24 @@ os_err_e os_msgQ_create(os_hMsgQ_t* msgQ, os_msgQ_mode_e mode, char const * name
 	q->msgList		 		= os_list_init();
 	q->mode		 			= mode;
 
+	/* Handles heap errors
+	 ------------------------------------------------------*/
+	if(q->obj.blockList == NULL || q->msgList == NULL){
+		os_heap_free(q);
+		os_list_clear(q->obj.blockList);
+		os_list_clear(q->msgList);
+		return OS_ERR_INSUFFICIENT_HEAP;
+	}
+
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) q, OS_LIST_FIRST);
-	if(ret != OS_ERR_OK) return ret;
+	if(ret != OS_ERR_OK) {
+		os_heap_free(q);
+		os_list_clear(q->obj.blockList);
+		os_list_clear(q->msgList);
+		return ret;
+	}
 
 	/* Return
 	 ------------------------------------------------------*/

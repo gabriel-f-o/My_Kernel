@@ -224,7 +224,10 @@ os_xmodem_state xModem_getState(){
  **********************************************************************/
 void* xModem_rcv(char* path){
 
-	xmodem_state = OS_XMODEM_STATE_RUN;
+	if(os_evt_create(&xmodem_evt_rcv, OS_EVT_MODE_AUTO, NULL) != OS_ERR_OK){
+		return NULL;
+	}
+
 	os_err_e err;
 	XmodemState_t state = XMODEM_STATE_WAIT_TO_START;
 	uint8_t packet[133];
@@ -233,16 +236,11 @@ void* xModem_rcv(char* path){
 	uint16_t receivedBytes;
 	uint32_t address = 0;
 
-	if(os_evt_create(&xmodem_evt_rcv, OS_EVT_MODE_AUTO, NULL) != OS_ERR_OK){
-		xmodem_state = OS_XMODEM_STATE_STOP;
-		return NULL;
-	}
-
 	lfs_file_t lfs_file;
 	lfs_remove(&lfs, path);
 	int32_t file_error = lfs_file_open(&lfs, &lfs_file, path, LFS_O_RDWR | LFS_O_CREAT);
 	if(file_error<0) {
-		xmodem_state = OS_XMODEM_STATE_STOP;
+		os_evt_delete(xmodem_evt_rcv);
 		return NULL;
 	}
 
@@ -251,6 +249,8 @@ void* xModem_rcv(char* path){
 	HAL_UART_AbortReceive(&USART_CLI);
 	HAL_UART_AbortReceive_IT(&USART_CLI);
 	__HAL_UART_FLUSH_DRREGISTER(&USART_CLI);
+
+	xmodem_state = OS_XMODEM_STATE_RUN;
 
 	packetNumber = 0;
 	started = false;
@@ -318,6 +318,8 @@ void* xModem_rcv(char* path){
 
 	os_heap_free(path);
 	xmodem_state = OS_XMODEM_STATE_STOP;
+
+	os_evt_delete(xmodem_evt_rcv);
 
 	cli_init();
 	return NULL;

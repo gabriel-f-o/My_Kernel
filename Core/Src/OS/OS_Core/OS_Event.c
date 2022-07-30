@@ -64,8 +64,9 @@ static uint32_t os_evt_getFreeCount(os_handle_t h){
  * @param os_handle_t h 			: [in] object to take
  * @param os_handle_t takingTask	: [in] handle to the task that is taking the object
  *
+ * @return os_err_e : 0 if ok
  **********************************************************************/
-static void os_evt_objTake(os_handle_t h, os_handle_t takingTask){
+static os_err_e os_evt_objTake(os_handle_t h, os_handle_t takingTask){
 	UNUSED_ARG(takingTask);
 
 	/* Convert address
@@ -74,13 +75,15 @@ static void os_evt_objTake(os_handle_t h, os_handle_t takingTask){
 
 	/* Check arguments
 	 ------------------------------------------------------*/
-	if(h == NULL) return;
-	if(h->type != OS_OBJ_EVT) return;
-	if(evt->state == OS_EVT_STATE_RESET) return;
+	if(h == NULL) return OS_ERR_BAD_ARG;
+	if(h->type != OS_OBJ_EVT) return OS_ERR_BAD_ARG;
+	if(evt->state == OS_EVT_STATE_RESET) return OS_ERR_BAD_ARG;
 
 	/* Reset event if auto mode
 	 ------------------------------------------------------*/
 	if(evt->mode == OS_EVT_MODE_AUTO) evt->state = OS_EVT_STATE_RESET;
+
+	return OS_ERR_OK;
 }
 
 
@@ -138,10 +141,21 @@ os_err_e os_evt_create(os_handle_t* h, os_evt_reset_mode_e mode, char const * na
 	evt->state				= OS_EVT_STATE_RESET;
 	evt->mode				= mode;
 
+	/* Handles heap errors
+	 ------------------------------------------------------*/
+	if(evt->obj.blockList == NULL){
+		os_heap_free(evt);
+		return OS_ERR_INSUFFICIENT_HEAP;
+	}
+
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) evt, OS_LIST_FIRST);
-	if(ret != OS_ERR_OK) return ret;
+	if(ret != OS_ERR_OK) {
+		os_heap_free(evt);
+		os_list_clear(evt->obj.blockList);
+		return OS_ERR_INSUFFICIENT_HEAP;
+	}
 
 	/* Return
 	 ------------------------------------------------------*/

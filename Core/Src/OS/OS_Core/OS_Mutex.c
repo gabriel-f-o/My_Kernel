@@ -52,8 +52,9 @@ static uint32_t os_mutex_getFreeCount(os_handle_t h){
  * @param os_handle_t h 			: [in] object to take
  * @param os_handle_t takingTask	: [in] handle to the task that is taking the object
  *
+ * @return os_err_e : 0 if ok
  **********************************************************************/
-static void os_mutex_objTake(os_handle_t h, os_handle_t takingTask){
+static os_err_e os_mutex_objTake(os_handle_t h, os_handle_t takingTask){
 
 	/* Convert address
 	 ------------------------------------------------------*/
@@ -62,12 +63,12 @@ static void os_mutex_objTake(os_handle_t h, os_handle_t takingTask){
 
 	/* Check arguments
 	 ------------------------------------------------------*/
-	if(h == NULL) return;
-	if(h->type != OS_OBJ_MUTEX) return;
-	if(mutex->state == OS_MUTEX_STATE_LOCKED) return;
+	if(h == NULL) return OS_ERR_BAD_ARG;
+	if(h->type != OS_OBJ_MUTEX) return OS_ERR_BAD_ARG;
+	if(mutex->state == OS_MUTEX_STATE_LOCKED) return OS_ERR_BAD_ARG;
 
-	if(takingTask == NULL) return;
-	if(takingTask->type != OS_OBJ_TASK) return;
+	if(takingTask == NULL) return OS_ERR_BAD_ARG;
+	if(takingTask->type != OS_OBJ_TASK) return OS_ERR_BAD_ARG;
 
 	/* Store owner task
 	 ------------------------------------------------------*/
@@ -79,7 +80,7 @@ static void os_mutex_objTake(os_handle_t h, os_handle_t takingTask){
 
 	/* Add mutex to the owned mutex list
 	 ------------------------------------------------------*/
-	os_list_add(t->ownedMutex, h, OS_LIST_FIRST);
+	return os_list_add(t->ownedMutex, h, OS_LIST_FIRST);
 }
 
 
@@ -136,10 +137,21 @@ os_err_e os_mutex_create(os_handle_t* h, char const * name){
 	mutex->owner 				= NULL;
 	mutex->max_prio 			= -1;
 
+	/* Handles heap errors
+	 ------------------------------------------------------*/
+	if(mutex->obj.blockList == NULL){
+		os_heap_free(mutex);
+		return OS_ERR_INSUFFICIENT_HEAP;
+	}
+
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) mutex, OS_LIST_FIRST);
-	if(ret != OS_ERR_OK) return ret;
+	if(ret != OS_ERR_OK) {
+		os_heap_free(mutex);
+		os_list_clear(mutex->obj.blockList);
+		return ret;
+	}
 
 	/* Return
 	 ------------------------------------------------------*/

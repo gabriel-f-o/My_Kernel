@@ -50,20 +50,22 @@ static uint32_t os_sem_getFreeCount(os_handle_t h){
  * @return os_err_e : error code (0 = OK)
  *
  **********************************************************************/
-static void os_sem_objTake(os_handle_t h, os_handle_t takingTask){
+static os_err_e os_sem_objTake(os_handle_t h, os_handle_t takingTask){
 	UNUSED_ARG(takingTask);
 
 	/* Check arguments
 	 ------------------------------------------------------*/
-	if(h == NULL) return;
-	if(h->type != OS_OBJ_SEM) return;
-	if( ((os_sem_t*)h)->count <= 0) return;
+	if(h == NULL) return OS_ERR_BAD_ARG;
+	if(h->type != OS_OBJ_SEM) return OS_ERR_BAD_ARG;
+	if( ((os_sem_t*)h)->count <= 0) return OS_ERR_BAD_ARG;
 
 	/* Take it
 	 ------------------------------------------------------*/
 	OS_CRITICAL_SECTION(
 		((os_sem_t*)h)->count--;
 	);
+
+	return OS_ERR_OK;
 }
 
 
@@ -122,10 +124,21 @@ os_err_e os_sem_create(os_handle_t* h, uint16_t init_count, uint16_t max_count, 
 	sem->count 				= init_count;
 	sem->count_max 			= max_count;
 
+	/* Handles heap errors
+	 ------------------------------------------------------*/
+	if(sem->obj.blockList == NULL){
+		os_heap_free(sem);
+		return OS_ERR_INSUFFICIENT_HEAP;
+	}
+
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) sem, OS_LIST_FIRST);
-	if(ret != OS_ERR_OK) return ret;
+	if(ret != OS_ERR_OK) {
+		os_heap_free(sem);
+		os_list_clear(sem->obj.blockList);
+		return ret;
+	}
 
 	/* Return
 	 ------------------------------------------------------*/

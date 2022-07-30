@@ -1,6 +1,6 @@
-OS_Sem.c:29:17:os_sem_getFreeCount	0	static
-OS_Sem.c:53:13:os_sem_objTake	8	static,ignoring_inline_asm
-OS_Sem.c:87:10:os_sem_create	32	static
-OS_Sem.c:147:10:os_sem_release	16	static,ignoring_inline_asm
-OS_Sem.c:192:10:os_sem_delete	8	static
-OS_Sem.c:220:10:os_sem_getCount	0	static
+OS_Sem.c:29:17:os_sem_getFreeCount	16	static
+OS_Sem.c:53:17:os_sem_objTake	24	static,ignoring_inline_asm
+OS_Sem.c:89:10:os_sem_create	40	static
+OS_Sem.c:160:10:os_sem_release	32	static,ignoring_inline_asm
+OS_Sem.c:205:10:os_sem_delete	16	static
+OS_Sem.c:233:10:os_sem_getCount	16	static

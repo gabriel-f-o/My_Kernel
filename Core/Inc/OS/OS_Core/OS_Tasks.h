@@ -56,6 +56,9 @@ typedef struct os_task_{
 	void*				ownedMutex;			//List containing all mutexes owned by this task
 	void*				retVal;				//Return value;
 	int8_t				priority;			//Used internally to store calculated priority
+
+	int					argc;				//Used to store the number of arguments when loading an elf.
+	char**				argv;				//Array of strings for each argument
 } os_task_t;
 
 /**********************************************
@@ -79,6 +82,21 @@ typedef struct os_task_{
  *
  **********************************************************************/
 os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg);
+
+
+/***********************************************************************
+ * OS Create process
+ *
+ * @brief This function creates a process using its ELF file
+ *
+ * @param char* file   : [in] File's name
+ * @param void* argc   : [in] Argument number to be passed to the task
+ * @param char* argv[] : [in] Array of strings to be passed to the task
+ *
+ * @return os_err_e : An error code (0 = OK)
+ *
+ **********************************************************************/
+os_err_e os_task_createProcess(char* file, int argc, char* argv[]);
 
 
 /***********************************************************************

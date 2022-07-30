@@ -13,7 +13,7 @@
  * PRIVATE VARIABLES
  *********************************************/
 
-static char c;
+static char cli_char;
 static char cliBuffer[128];
 
 /**********************************************
@@ -27,8 +27,8 @@ static char cliBuffer[128];
  *
  **********************************************************************/
 void cli_rcv_char_cb_irq(){
-	cli_insert_char(cliBuffer, sizeof(cliBuffer), c);
-	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&c, 1);
+	cli_insert_char(cliBuffer, sizeof(cliBuffer), cli_char);
+	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&cli_char, 1);
 }
 
 /**********************************************
@@ -46,7 +46,7 @@ void cli_init(){
 	HAL_UART_Abort(&USART_CLI);
 	HAL_UART_AbortReceive_IT(&USART_CLI);
 	__HAL_UART_FLUSH_DRREGISTER(&USART_CLI);
-	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&c, 1);
+	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&cli_char, 1);
 }
 
 /***********************************************************************

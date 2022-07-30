@@ -101,16 +101,19 @@
 
 /* OS errors
  ---------------------------------------------------*/
-typedef enum{
-	OS_ERR_OK,
-	OS_ERR_BAD_ARG,
-	OS_ERR_INVALID,
-	OS_ERR_INSUFFICIENT_HEAP,
-	OS_ERR_NOT_READY,
-	OS_ERR_FORBIDDEN,
-	OS_ERR_TIMEOUT,
-	OS_ERR_UNKNOWN,
-} os_err_e;
+enum{
+	OS_ERR_OK			 		=  0,
+	OS_ERR_BAD_ARG		 		= -1,
+	OS_ERR_INVALID				= -2,
+	OS_ERR_INSUFFICIENT_HEAP	= -3,
+	OS_ERR_NOT_READY			= -4,
+	OS_ERR_FORBIDDEN			= -5,
+	OS_ERR_TIMEOUT				= -6,
+	OS_ERR_UNKNOWN				= -7,
+	OS_ERR_FS					= -8,
+};
+
+typedef int32_t os_err_e;
 
 
 /**********************************************

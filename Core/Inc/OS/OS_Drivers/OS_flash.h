@@ -39,10 +39,10 @@ extern char _flash_size[];
  * @param uint8_t buffer[]  : [in] Buffer containing the data to write
  * @param size_t len 		: [in] Size of the data buffer
  *
- * @return int32_t : <0 if error. Otherwise the number of bytes written
+ * @return os_err_e : <0 if error. Otherwise the number of bytes written
  *
  **********************************************************************/
-int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len);
+os_err_e os_flash_write(uint32_t addr, uint8_t buffer[], size_t len);
 
 
 /***********************************************************************
@@ -54,10 +54,10 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len);
  * @param uint8_t buffer[]  : [out] Output Buffer
  * @param size_t len 		: [ in] Size of the data buffer
  *
- * @return int32_t : <0 if error. Otherwise the number of read bytes
+ * @return os_err_e : <0 if error. Otherwise the number of read bytes
  *
  **********************************************************************/
-int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len);
+os_err_e os_flash_read(uint32_t addr, uint8_t buffer[], size_t len);
 
 
 /***********************************************************************
@@ -83,10 +83,10 @@ int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len);
  * @param uint32_t addrBeg	: [in] Beginning address of the sector to erase
  * @param uint32_t secNum   : [in] Number of sectors to erase
  *
- * @return int32_t : <0 if error. Otherwise the number of sectors erased
+ * @return os_err_e : <0 if error. Otherwise the number of sectors erased
  *
  **********************************************************************/
-int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum);
+os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum);
 
 
 #endif /* INC_OS_OS_DRIVERS_OS_FLASH_H_ */

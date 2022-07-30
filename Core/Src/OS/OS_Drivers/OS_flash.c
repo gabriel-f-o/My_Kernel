@@ -21,31 +21,31 @@
  * @param uint8_t buffer[]  : [in] Buffer containing the data to write
  * @param size_t len 		: [in] Size of the data buffer
  *
- * @return int32_t : <0 if error. Otherwise the number of bytes written
+ * @return os_err_e : <0 if error. Otherwise the number of bytes written
  *
  **********************************************************************/
-int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
+os_err_e os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 
 	/* Check arguments
 	 ------------------------------------------------------*/
-	if(len == 0) return -2;
-	if(buffer == NULL) return -2;
-	if(addr < FLASH_BASE_ADDR) return -2;
-	if(addr >= FLASH_END_ADDR) return -2;
+	if(len == 0) return OS_ERR_BAD_ARG;
+	if(buffer == NULL) return OS_ERR_BAD_ARG;
+	if(addr < FLASH_BASE_ADDR) return OS_ERR_BAD_ARG;
+	if(addr >= FLASH_END_ADDR) return OS_ERR_BAD_ARG;
 
 	/* Wait for last operation
 	 ------------------------------------------------------*/
 	HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(1000);
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
-		return -1;
+		return OS_ERR_UNKNOWN;
 
 	/* Unlock flash
 	 ------------------------------------------------------*/
 	ret = HAL_FLASH_Unlock();
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
-		return -1;
+		return OS_ERR_UNKNOWN;
 
 	/* Write into flash. You can write 1, 2, or 4 bytes at a time
 	 ------------------------------------------------------*/
@@ -82,7 +82,9 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 
 		/* Program flash
 		 ------------------------------------------------------*/
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 		ret = HAL_FLASH_Program(writeFlag, addr, data);
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 		ASSERT(ret == HAL_OK);
 		if(ret != HAL_OK){
 			err = 1;
@@ -109,7 +111,7 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 	 ------------------------------------------------------*/
 	ret = HAL_FLASH_Lock();
 	ASSERT(ret == HAL_OK);
-	return err == 1 ? -1 : pos;
+	return err == 1 ? OS_ERR_UNKNOWN : pos;
 }
 
 
@@ -122,17 +124,17 @@ int32_t os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
  * @param uint8_t buffer[]  : [out] Output Buffer
  * @param size_t len 		: [ in] Size of the data buffer
  *
- * @return int32_t : <0 if error. Otherwise the number of read bytes
+ * @return os_err_e : <0 if error. Otherwise the number of read bytes
  *
  **********************************************************************/
-int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
+os_err_e os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
 
 	/* Argument check
 	 ------------------------------------------------------*/
-	if(len == 0) return -2;
-	if(buffer == NULL) return -2;
-	if(addr < FLASH_BASE_ADDR) return -2;
-	if(addr >= FLASH_END_ADDR) return -2;
+	if(len == 0) return OS_ERR_BAD_ARG;
+	if(buffer == NULL) return OS_ERR_BAD_ARG;
+	if(addr < FLASH_BASE_ADDR) return OS_ERR_BAD_ARG;
+	if(addr >= FLASH_END_ADDR) return OS_ERR_BAD_ARG;
 
 	/* Check border and calculates the amout of data to read
 	 ------------------------------------------------------*/
@@ -143,7 +145,9 @@ int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
 
 	/* Copy data into buffer
 	 ------------------------------------------------------*/
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 	memcpy(buffer, (void*)addr, readBytes);
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 
 	/* Return the amount of bytes
 	 ------------------------------------------------------*/
@@ -174,15 +178,15 @@ int32_t os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
  * @param uint32_t addrBeg	: [in] Beginning address of the sector to erase
  * @param uint32_t secNum   : [in] Number of sectors to erase
  *
- * @return int32_t : <0 if error. Otherwise the number of sectors erased
+ * @return os_err_e : <0 if error. Otherwise the number of sectors erased
  *
  **********************************************************************/
-int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum){
+os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 
 	/* Check arguments
 	 ------------------------------------------------------*/
-	if(addrBeg < FLASH_BASE_ADDR) return -2;
-	if(addrBeg >= FLASH_END_ADDR) return -2;
+	if(addrBeg < FLASH_BASE_ADDR) return OS_ERR_BAD_ARG;
+	if(addrBeg >= FLASH_END_ADDR) return OS_ERR_BAD_ARG;
 
 	/* Select first sector
 	 ------------------------------------------------------*/
@@ -201,21 +205,21 @@ int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	if(addrBeg == 0x080C0000) firstSector = FLASH_SECTOR_10;
 	if(addrBeg == 0x080E0000) firstSector = FLASH_SECTOR_11;
 
-	if(firstSector < 0)	return -2;
+	if(firstSector < 0)	return OS_ERR_BAD_ARG;
 
 	/* Wait for operation to end
 	 ------------------------------------------------------*/
 	HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(1000);
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
-		return -1;
+		return OS_ERR_UNKNOWN;
 
 	/* Unlock flash
 	 ------------------------------------------------------*/
 	ret = HAL_FLASH_Unlock();
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
-		return -1;
+		return OS_ERR_UNKNOWN;
 
 	/* Calculates the maximum number of sectors we can erase, and cap accordingly
 	 ------------------------------------------------------*/
@@ -236,7 +240,9 @@ int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 
 	/* Erase sectors
 	 ------------------------------------------------------*/
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
 	ret = HAL_FLASHEx_Erase(&eraseConf, &SectorError);
+	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK){
 		error = 1;
@@ -258,5 +264,5 @@ int32_t os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 		error = 1;
 	}
 
-	return error == 1 ? -1 : (int32_t)secNum;
+	return error == 1 ? OS_ERR_UNKNOWN : (int32_t)secNum;
 }

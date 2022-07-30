@@ -1,3 +1,3 @@
-OS_flash.c:27:9:os_flash_write	40	static
-OS_flash.c:128:9:os_flash_read	8	static
-OS_flash.c:180:9:os_flash_erase	40	static
+OS_flash.c:27:10:os_flash_write	72	static
+OS_flash.c:130:10:os_flash_read	32	static
+OS_flash.c:184:10:os_flash_erase	56	static
