@@ -46,6 +46,10 @@ defined in linker script */
 .word  _ebss
 /* stack used for SystemInit_ExtMemCtl; always internal RAM used */
 
+.word _sislPtr
+.word _sslPtr
+.word _eslPtr
+
 /**
  * @brief  This is the code that gets called when the processor first
  *          starts execution following a reset event. Only the absolutely
@@ -77,6 +81,23 @@ LoopCopyDataInit:
   adds  r2, r0, r1
   cmp  r2, r3
   bcc  CopyDataInit
+
+  ldr r0, =_sslPtr
+  ldr r1, =_eslPtr
+  ldr r2, =_sislPtr
+  movs r3, #0
+  b LoopSlPtrInit
+
+CopySlPtrInit:
+  ldr r4, [r2, r3]
+  str r4, [r0, r3]
+  adds r3, r3, #4
+
+LoopSlPtrInit:
+  adds r4, r0, r3
+  cmp r4, r1
+  bcc CopySlPtrInit
+
   ldr  r2, =_sbss
   b  LoopFillZerobss
 /* Zero fill the bss segment. */  

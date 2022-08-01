@@ -1,8 +1,8 @@
-OS_Event.c:34:17:os_evt_getFreeCount	24	static
-OS_Event.c:69:17:os_evt_objTake	24	static
-OS_Event.c:106:10:os_evt_create	40	static
-OS_Event.c:176:10:os_evt_reset	32	static,ignoring_inline_asm
-OS_Event.c:222:10:os_evt_set	32	static,ignoring_inline_asm
-OS_Event.c:269:10:os_evt_set_mode	32	static,ignoring_inline_asm
-OS_Event.c:316:10:os_evt_delete	16	static
-OS_Event.c:344:16:os_evt_getState	16	static
+OS_Event.c:69:17:os_evt_objTake	0	static
+OS_Event.c:34:17:os_evt_getFreeCount	0	static
+OS_Event.c:106:10:os_evt_create	24	static
+OS_Event.c:176:10:os_evt_reset	16	static,ignoring_inline_asm
+OS_Event.c:222:10:os_evt_set	16	static,ignoring_inline_asm
+OS_Event.c:269:10:os_evt_set_mode	16	static,ignoring_inline_asm
+OS_Event.c:316:10:os_evt_delete	8	static
+OS_Event.c:344:16:os_evt_getState	0	static

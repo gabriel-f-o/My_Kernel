@@ -110,6 +110,14 @@ typedef struct{
 	uint32_t size;
 } os_elf_mapping_el_t;
 
+
+/* Structure containing the information to execute the program
+ ---------------------------------------------------*/
+typedef struct{
+	void* entryPoint;
+	uint32_t gotBase;
+}os_elf_prog_t;
+
 /**********************************************
  * OS PRIVATE FUNCTIONS
  *********************************************/
@@ -324,9 +332,9 @@ bool os_msgQ_updateAndCheck(os_hMsgQ_t msgQ);
  *
  * @param char* name : [ in] File name
  *
- * @return void* : NULL if error, otherwise the entry point of the program
+ * @return os_elf_prog_t : Necessary information to run a program
  **********************************************************************/
-void* os_elf_loadFile(char* file);
+os_elf_prog_t os_elf_loadFile(char* file);
 
 
 #endif /* INC_OS_OS_INTERNAL_H_ */

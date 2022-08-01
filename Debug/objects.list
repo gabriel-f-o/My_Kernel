@@ -22,6 +22,7 @@
 "Core/Src/OS/OS_FS/lfs_bsp.o"
 "Core/Src/OS/OS_FS/lfs_util.o"
 "Core/Src/OS/OS_FS/xmodem.o"
+"Core/Src/OS/OS_SL/os_sl.o"
 "Core/Src/gpio.o"
 "Core/Src/main.o"
 "Core/Src/stm32f4xx_hal_msp.o"

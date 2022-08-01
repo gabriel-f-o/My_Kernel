@@ -1,7 +1,7 @@
-OS_MsgQ.c:32:17:os_msgQ_getFreeCount	16	static
-OS_MsgQ.c:48:17:os_msgQ_objTake	16	static
-OS_MsgQ.c:71:10:os_msgQ_create	40	static
-OS_MsgQ.c:147:10:os_msgQ_push	24	static
-OS_MsgQ.c:177:10:os_msgQ_delete	16	static
-OS_MsgQ.c:209:10:os_msgQ_getNumberOfMsgs	16	static
+OS_MsgQ.c:32:17:os_msgQ_getFreeCount	0	static
+OS_MsgQ.c:48:17:os_msgQ_objTake	0	static
+OS_MsgQ.c:71:10:os_msgQ_create	24	static
+OS_MsgQ.c:147:10:os_msgQ_push	16	static
+OS_MsgQ.c:177:10:os_msgQ_delete	8	static
+OS_MsgQ.c:209:10:os_msgQ_getNumberOfMsgs	0	static
 OS_MsgQ.c:233:7:os_msgQ_wait	48	static,ignoring_inline_asm

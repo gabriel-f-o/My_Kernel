@@ -22,6 +22,7 @@ Core/Src/OS/OS_CLI/submenus \
 Core/Src/OS/OS_Core \
 Core/Src/OS/OS_Drivers \
 Core/Src/OS/OS_FS \
+Core/Src/OS/OS_SL \
 Core/Src \
 Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \

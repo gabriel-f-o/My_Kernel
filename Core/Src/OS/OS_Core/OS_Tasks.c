@@ -149,11 +149,12 @@ static os_err_e os_task_objTake(os_handle_t h, os_handle_t takingTask){
  * @param uint32_t stack_size 	: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
  * @param void* argc			: [ in] First argument to be passed to the task (used for argc)
  * @param void* argv			: [ in] Second argument to be passed to the task (used for argv)
+ * @param uint32_t r9			: [ in] R9 value. Used to store the GOT
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* argc, void* argv){
+static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* argc, void* argv, uint32_t r9){
 
 	/* Check for argument errors
 	 ------------------------------------------------------*/
@@ -240,7 +241,7 @@ static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(voi
 	*--t->pStack = (uint32_t) 0xFFFFFFFD;    	//LR (when called by the interrupt, flag as basic frame used always)
 	*--t->pStack = (uint32_t) 0;			 	//R11
 	*--t->pStack = (uint32_t) 0;			 	//R10
-	*--t->pStack = (uint32_t) 0; 			 	//R9
+	*--t->pStack = (uint32_t) r9; 			 	//R9
 	*--t->pStack = (uint32_t) 0;			 	//R8
 	*--t->pStack = (uint32_t) 0;				//R7
 	*--t->pStack = (uint32_t) 0;				//R6
@@ -468,7 +469,7 @@ os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i),
 
 	/* Start task with the correct arguments
 	 ------------------------------------------------------*/
-	return os_task_start(h, name, fn, mode, priority, stack_size, arg, NULL);
+	return os_task_start(h, name, fn, mode, priority, stack_size, arg, NULL, 0);
 }
 
 
@@ -488,15 +489,15 @@ os_err_e os_task_createProcess(char* file, int argc, char* argv[]){
 
 	/* Load ELF file
 	 ------------------------------------------------------*/
-	void* code = os_elf_loadFile(file);
+	os_elf_prog_t prog = os_elf_loadFile(file);
 
-	if(code == NULL)
+	if(prog.entryPoint == NULL || prog.gotBase == 0)
 		return OS_ERR_UNKNOWN;
 
 	/* Start task with correct arguments
 	 ------------------------------------------------------*/
 	os_handle_t h;
-	return os_task_start(&h, file, code, OS_TASK_MODE_DELETE, 10, 5 * OS_DEFAULT_STACK_SIZE, (void*) argc, argv);
+	return os_task_start(&h, file, prog.entryPoint, OS_TASK_MODE_DELETE, 10, 5 * OS_DEFAULT_STACK_SIZE, (void*) argc, argv, prog.gotBase);
 }
 
 

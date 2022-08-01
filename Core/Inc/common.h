@@ -42,4 +42,6 @@
 #define ASSERT(x)     if(!(x)) PRINTLN("Error occured");
 #endif
 
+extern int __io_putchar(int ch);
+
 #endif /* INC_COMMON_H_ */

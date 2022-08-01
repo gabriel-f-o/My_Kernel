@@ -1259,9 +1259,14 @@ static uint32_t os_elf_memoryRecalc(uint32_t originalAddr, os_elf_mapping_el_t m
  * @param lfs_file_t* lfs_file		: [ in] File pointer to the elf file
  * @param os_elf_mapping_el_t map[]	: [ in] Array containing the old and new addresses of all segments
  *
- * @return void* : NULL if error, otherwise the entry point of the program
+ * @return os_elf_prog_t : information needed to run an executable
  **********************************************************************/
-static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_elf_mapping_el_t map[]){
+static os_elf_prog_t os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_elf_mapping_el_t map[]){
+
+	/* Declare empty return
+	 ------------------------------------------------------*/
+	os_elf_prog_t ret = {};
+	os_elf_prog_t NullRet = {};
 
 	/* Load section header that contains the names of the sections
 	 ------------------------------------------------------*/
@@ -1269,11 +1274,12 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
 	int err  = lfs_file_seek(&lfs, lfs_file, (lfs_soff_t)(header->e_shoff + (uint32_t)(header->e_shstrndx * header->e_shentsize) ), LFS_SEEK_SET); //Seek to the index of the section header that contains all names
 		err |= lfs_file_read(&lfs, lfs_file, &names, sizeof(names));
 	if(err < 0){
-		return NULL;
+		return NullRet;
 	}
 
 	/* For each section
 	 ------------------------------------------------------*/
+	bool gotFound = 0;
 	for(uint32_t i = 0; i < header->e_shnum; i++){
 
 		/* read section header information
@@ -1282,7 +1288,7 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
 		int err  = lfs_file_seek(&lfs, lfs_file, (lfs_soff_t)(header->e_shoff + i * header->e_shentsize), LFS_SEEK_SET); //Seek to the section header
 			err |= lfs_file_read(&lfs, lfs_file, &data, sizeof(data));
 		if(err < 0){
-			return NULL;
+			return NullRet;
 		}
 
 		/* Get the name of the current section
@@ -1291,7 +1297,7 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
 		err  = lfs_file_seek(&lfs, lfs_file, (lfs_soff_t)(data.sh_name + names.sh_offset), LFS_SEEK_SET); //Seek to the string position in the file
 		err |= lfs_file_read(&lfs, lfs_file, sect_name, sizeof(sect_name));
 		if(err < 0){
-			return NULL;
+			return NullRet;
 		}
 
 		/* We are only intrested in the GOT section
@@ -1301,14 +1307,15 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
 
 		/* With Got section found, now we need to find where it lies in our heap
 		 ------------------------------------------------------*/
-		uint32_t ramGotAddr = os_elf_memoryRecalc(data.sh_addr, map, header->e_phnum);
-		if(ramGotAddr == 0){
-			return NULL;
+		gotFound = 1;
+		ret.gotBase = os_elf_memoryRecalc(data.sh_addr, map, header->e_phnum);
+		if(ret.gotBase == 0){
+			return NullRet;
 		}
 
 		/* Correct each GOT entry
 		 ------------------------------------------------------*/
-		uint32_t* pGot = (uint32_t*)ramGotAddr; //Convert to pointer
+		uint32_t* pGot = (uint32_t*)ret.gotBase; //Convert to pointer
 		for(int j = 0; j < data.sh_size; j+=4){ //Move in increments of 4 bytes
 			pGot[j/4] = os_elf_memoryRecalc(pGot[j/4], map, header->e_phnum); //Recalculate address
 		}
@@ -1318,8 +1325,8 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
 
 	/* Finally, calculate the entry point
 	 ------------------------------------------------------*/
-	void* entryPoint = (void*)os_elf_memoryRecalc(header->e_entry, map, header->e_phnum);
-	return entryPoint;
+	ret.entryPoint = (void*)os_elf_memoryRecalc(header->e_entry, map, header->e_phnum);
+	return gotFound == 1 ? ret : NullRet;
 }
 
 
@@ -1330,23 +1337,24 @@ static void* os_elf_adjustGot(os_elf_header_t* header, lfs_file_t* lfs_file, os_
  *
  * @param char* name : [ in] File name
  *
- * @return void* : NULL if error, otherwise the entry point of the program
+ * @return os_elf_prog_t : Necessary information to run a program
  **********************************************************************/
-void* os_elf_loadFile(char* file){
+os_elf_prog_t os_elf_loadFile(char* file){
 
 	/* Open file
 	 --------------------------------------------------*/
+	os_elf_prog_t nullRet = {};
 	lfs_file_t lfs_file;
 	int err = lfs_file_open(&lfs, &lfs_file, file, LFS_O_RDONLY);
 	if(err < 0){
 		PRINTLN("Open Error");
-		return NULL;
+		return nullRet;
 	}
 
 	/* Check header information
 	 --------------------------------------------------*/
 	os_elf_header_t header;
-	void* entryPoint = NULL;
+	os_elf_prog_t prg = {};
 	if(os_elf_checkHeader(&header, &lfs_file) >= 0) {
 
 		/* Load all segments into memory
@@ -1356,11 +1364,11 @@ void* os_elf_loadFile(char* file){
 
 			/* Finally, ajdust the GOT
 			 --------------------------------------------------*/
-			entryPoint = os_elf_adjustGot(&header, &lfs_file, map);
+			prg = os_elf_adjustGot(&header, &lfs_file, map);
 
 			/* If error, free the first position of the remap. This will free the block allocated in loadSegments
 			 --------------------------------------------------*/
-			if(entryPoint == NULL){
+			if(prg.entryPoint == NULL || prg.gotBase == 0){
 				os_heap_free((void*)map[0].remapped_addr);
 			}
 		}
@@ -1372,8 +1380,8 @@ void* os_elf_loadFile(char* file){
 	err = lfs_file_close(&lfs, &lfs_file);
 	if(err < 0){
 		PRINTLN("close Error");
-		return NULL;
+		return nullRet;
 	}
 
-	return entryPoint;
+	return prg;
 }

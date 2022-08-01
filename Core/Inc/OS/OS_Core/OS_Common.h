@@ -91,6 +91,10 @@
 #define __align(x)			__attribute__((aligned(x)))
 #endif
 
+#ifndef __section
+#define __section(x)		__attribute__((section(x)))
+#endif
+
 #ifndef UNUSED_ARG
 #define UNUSED_ARG(x)	((void)x)
 #endif
