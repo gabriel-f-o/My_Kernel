@@ -26,7 +26,22 @@ Core/Src/syscalls.o: ../Core/Src/syscalls.c ../Core/Inc/usart.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
- ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+ ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
+ ../Core/Inc/common.h ../Core/Inc/OS/OS_Core/OS.h \
+ ../Core/Inc/OS/OS_Core/OS_Common.h ../Core/Inc/OS/OS_Core/OS_Config.h \
+ ../Core/Inc/OS/OS_Core/OS_cortexM4.h ../Core/Inc/OS//OS_Core/OS_Common.h \
+ ../Core/Inc/OS/OS_Core/OS_Heap.h ../Core/Inc/OS/OS_Core/OS_Tasks.h \
+ ../Core/Inc/OS/OS_Core/OS_Obj.h ../Core/Inc/OS/OS_Core/OS_Callbacks.h \
+ ../Core/Inc/OS/OS_Core/OS_Tick.h ../Core/Inc/OS/OS_Core/OS_Scheduler.h \
+ ../Core/Inc/OS/OS_Core/OS_Sem.h ../Core/Inc/OS/OS_Core/OS_Mutex.h \
+ ../Core/Inc/OS/OS_Core/OS_Event.h ../Core/Inc/OS/OS_Core/OS_MsgQ.h \
+ ../Core/Inc/OS/OS_CLI/cli.h ../Core/Inc/OS/OS_CLI/cli_conf.h \
+ ../Core/Inc/OS/OS_CLI/cli_conf.h ../Core/Inc/OS/OS_CLI/cli_process.h \
+ ../Core/Inc/OS/OS_FS/lfs.h ../Core/Inc/OS/OS_FS/lfs_util.h \
+ ../Core/Inc/OS/OS_FS/lfs_flash.h ../Core/Inc/OS/OS_FS/lfs_util.h \
+ ../Core/Inc/OS/OS_FS/xmodem.h ../Core/Inc/OS/OS_FS/OS_fs.h \
+ ../Core/Inc/OS/OS_Drivers/OS_flash.h ../Core/Inc/OS/OS_Drivers/OS_leds.h \
+ ../Core/Inc/OS/OS_SL/os_sl.h
 
 ../Core/Inc/usart.h:
 
@@ -87,3 +102,61 @@ Core/Src/syscalls.o: ../Core/Src/syscalls.c ../Core/Inc/usart.h \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h:
 
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h:
+
+../Core/Inc/common.h:
+
+../Core/Inc/OS/OS_Core/OS.h:
+
+../Core/Inc/OS/OS_Core/OS_Common.h:
+
+../Core/Inc/OS/OS_Core/OS_Config.h:
+
+../Core/Inc/OS/OS_Core/OS_cortexM4.h:
+
+../Core/Inc/OS//OS_Core/OS_Common.h:
+
+../Core/Inc/OS/OS_Core/OS_Heap.h:
+
+../Core/Inc/OS/OS_Core/OS_Tasks.h:
+
+../Core/Inc/OS/OS_Core/OS_Obj.h:
+
+../Core/Inc/OS/OS_Core/OS_Callbacks.h:
+
+../Core/Inc/OS/OS_Core/OS_Tick.h:
+
+../Core/Inc/OS/OS_Core/OS_Scheduler.h:
+
+../Core/Inc/OS/OS_Core/OS_Sem.h:
+
+../Core/Inc/OS/OS_Core/OS_Mutex.h:
+
+../Core/Inc/OS/OS_Core/OS_Event.h:
+
+../Core/Inc/OS/OS_Core/OS_MsgQ.h:
+
+../Core/Inc/OS/OS_CLI/cli.h:
+
+../Core/Inc/OS/OS_CLI/cli_conf.h:
+
+../Core/Inc/OS/OS_CLI/cli_conf.h:
+
+../Core/Inc/OS/OS_CLI/cli_process.h:
+
+../Core/Inc/OS/OS_FS/lfs.h:
+
+../Core/Inc/OS/OS_FS/lfs_util.h:
+
+../Core/Inc/OS/OS_FS/lfs_flash.h:
+
+../Core/Inc/OS/OS_FS/lfs_util.h:
+
+../Core/Inc/OS/OS_FS/xmodem.h:
+
+../Core/Inc/OS/OS_FS/OS_fs.h:
+
+../Core/Inc/OS/OS_Drivers/OS_flash.h:
+
+../Core/Inc/OS/OS_Drivers/OS_leds.h:
+
+../Core/Inc/OS/OS_SL/os_sl.h:

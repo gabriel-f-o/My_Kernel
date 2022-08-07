@@ -31,14 +31,14 @@
 #include <usart.h>
 #include <sys/time.h>
 #include <sys/times.h>
-
+#include "common.h"
 
 /* Variables */
 //#undef errno
 extern int errno;
 extern int __io_putchar(int ch) __attribute__((weak));
 extern int __io_getchar(void) __attribute__((weak));
-
+extern os_handle_t uartMutex;
 register char * stack_ptr asm("sp");
 
 char *__env[1] = { 0 };
@@ -46,7 +46,11 @@ char **environ = __env;
 
 
 int __io_putchar(int ch){
+	os_obj_single_wait(uartMutex, OS_WAIT_FOREVER, NULL);
+
 	HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, 1000);
+
+	os_mutex_release(uartMutex);
 	return 0;
 }
 
@@ -78,7 +82,7 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
 
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
-		*ptr++ = __io_getchar();
+		*ptr++ = (char)__io_getchar();
 	}
 
 return len;

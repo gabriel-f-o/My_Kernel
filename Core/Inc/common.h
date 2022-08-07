@@ -8,17 +8,22 @@
 #ifndef INC_COMMON_H_
 #define INC_COMMON_H_
 
-#include "OS/OS_CLI/cli_conf.h"
-#include "OS/OS_CLI/cli.h"
-#include "OS/OS_CLI/cli_process.h"
 #include "OS/OS_Core/OS.h"
 
-#include "OS/OS_FS/xmodem.h"
-#include "OS/OS_FS/lfs_util.h"
-#include "OS/OS_FS/lfs_flash.h"
+#include "OS/OS_CLI/cli.h"
+#include "OS/OS_CLI/cli_conf.h"
+#include "OS/OS_CLI/cli_process.h"
+
 #include "OS/OS_FS/lfs.h"
+#include "OS/OS_FS/lfs_flash.h"
+#include "OS/OS_FS/lfs_util.h"
+#include "OS/OS_FS/xmodem.h"
+#include "OS/OS_FS/OS_fs.h"
 
 #include "OS/OS_Drivers/OS_flash.h"
+#include "OS/OS_Drivers/OS_leds.h"
+
+#include "OS/OS_SL/os_sl.h"
 
 #include "main.h"
 

@@ -14,8 +14,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "OS/OS_Core/OS_Config.h"
-#include "OS/OS_CLI/cli_conf.h"
-#include "OS/OS_CLI/cli.h"
 
 
 /**********************************************
@@ -97,6 +95,10 @@
 
 #ifndef UNUSED_ARG
 #define UNUSED_ARG(x)	((void)x)
+#endif
+
+#ifndef COUNTOF
+#define COUNTOF(x)		((int)(sizeof(x)/sizeof(*x)))
 #endif
 
 /**********************************************

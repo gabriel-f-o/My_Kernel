@@ -46,7 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+os_handle_t uartMutex;
+os_handle_t fsMutex;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,6 +97,8 @@ int main(void)
 	cli_init();
 	PRINTLN("Periph Init Finished");
 	ASSERT(os_init("main", 10, OS_DEFAULT_STACK_SIZE, "idle", OS_DEFAULT_STACK_SIZE) == OS_ERR_OK);
+	ASSERT(os_mutex_create(&uartMutex, "uart mutex") == OS_ERR_OK);
+	ASSERT(os_mutex_create(&fsMutex, "fs mutex") == OS_ERR_OK);
 	os_scheduler_start();
 
 	PRINTLN("Init OS finished");

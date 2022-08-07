@@ -8,8 +8,6 @@
 #ifndef INC_OS_OS_FS_XMODEM_H_
 #define INC_OS_OS_FS_XMODEM_H_
 
-#include "common.h"
-
 /**********************************************************
  * PUBLIC TYPES
  **********************************************************/

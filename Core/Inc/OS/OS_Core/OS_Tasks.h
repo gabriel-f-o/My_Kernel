@@ -10,7 +10,6 @@
 
 #include "OS/OS_Core/OS_Common.h"
 #include "OS/OS_Core/OS_Obj.h"
-#include "OS/OS_Core/OS_Mutex.h"
 
 /**********************************************
  * PUBLIC TYPES

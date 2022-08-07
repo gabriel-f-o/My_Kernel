@@ -38,6 +38,11 @@ static uint32_t os_evt_getFreeCount(os_handle_t h){
 	if(h == NULL) return 0;
 	if(h->type != OS_OBJ_EVT) return 0;
 
+	/* Enter critical
+	 ------------------------------------------------------*/
+	OS_DECLARE_IRQ_STATE;
+	OS_ENTER_CRITICAL();
+
 	/* Convert address
 	 ------------------------------------------------------*/
 	os_evt_t* evt = (os_evt_t*)h;
@@ -52,6 +57,7 @@ static uint32_t os_evt_getFreeCount(os_handle_t h){
 		}
 	}
 
+	OS_EXIT_CRITICAL();
 	return freeCount;
 }
 

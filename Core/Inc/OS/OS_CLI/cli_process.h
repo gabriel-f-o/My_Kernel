@@ -8,8 +8,6 @@
 #ifndef INC_OS_OS_CLI_CLI_PROCESS_H_
 #define INC_OS_OS_CLI_CLI_PROCESS_H_
 
-#include "common.h"
-
 /**********************************************
  * PUBLIC FUNCTIONS
  * ********************************************/

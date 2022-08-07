@@ -8,28 +8,43 @@
 #include "OS/OS_Core/OS_Common.h"
 #include "common.h"
 
-#define OS_JEBA(n, fn)		{ .name = n, .fnPtr = fn }
+/**********************************************
+ * EXTERNAL FUNCTIONS
+ *********************************************/
 
-void* os_sl_translate(char* );
+extern const os_fn_link_table_el_t os_link_table[];
 
-void* __section(".slPtr") __used pOs_sl_translate = os_sl_translate;
+/**********************************************
+ * PRIVATE FUNCTIONS
+ *********************************************/
 
-typedef struct{
-	void*	fnPtr;
-	char*	name;
-} os_jeba_t;
+static void* __section(".slPtr") __used pOs_sl_translate = &os_sl_translate;
 
+/**********************************************
+ * PUBLIC FUNCTIONS
+ *********************************************/
 
-static const os_jeba_t teste[] = {
-		OS_JEBA("__io_putchar", __io_putchar),
-};
-
+/***********************************************************************
+ * OS shared library translate
+ *
+ * @brief This function searches a linked function with its name and returns its reference
+ *
+ * @return void* : the reference to the function or NULL if it does not exist
+ **********************************************************************/
 void* os_sl_translate(char* name){
-	for(int i = 0; i < sizeof(teste)/sizeof(*teste); i++){
-		if(strcmp(teste[i].name, name) == 0){
-			return teste[i].fnPtr;
+
+	/* Search for function
+	 ------------------------------------------------------*/
+	for(size_t i = 0; i < os_sl_linkTable_getSize(); i++){
+
+		/* If the string maches, return the function's reference
+		 ------------------------------------------------------*/
+		if(strcmp(os_link_table[i].name, name) == 0){
+			return os_link_table[i].fnPtr;
 		}
 	}
 
+	/* Did not find function. Return NULL
+	 ------------------------------------------------------*/
 	return NULL;
 }

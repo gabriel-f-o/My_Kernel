@@ -14,18 +14,20 @@
 // If LFS_CONFIG is used, none of the default utils will be emitted and must be
 // provided by the config file. To start, I would suggest copying lfs_util.h
 // and modifying as needed.
+
+#define LFS_NO_ASSERT
+
 #ifdef LFS_CONFIG
 #define LFS_STRINGIZE(x) LFS_STRINGIZE2(x)
 #define LFS_STRINGIZE2(x) #x
 #include LFS_STRINGIZE(LFS_CONFIG)
 #else
-
 // System includes
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <inttypes.h>
-#include "OS/OS_Core/OS.h"
+#include "OS/OS_Core/OS_Heap.h"
 #ifndef LFS_NO_MALLOC
 #include <stdlib.h>
 #endif
