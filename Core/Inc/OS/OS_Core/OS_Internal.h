@@ -21,8 +21,8 @@
 typedef struct os_list_cell_{
 	struct os_list_cell_* next;			//Points to the next stack on the list
 	struct os_list_cell_* prev;			//Points to the previous stack on the list
-	void*  		 		  element;		//Pointer to the element
-	uint32_t			  order;			//To store the order of waiting
+	void*  		 		 element;		//Pointer to the element
+	uint32_t			 order;			//To store the order of waiting
 } os_list_cell_t;
 
 /* Head object
@@ -307,19 +307,6 @@ bool os_task_list_isObjFreeOnTask(os_handle_t obj, os_handle_t task);
  * @return bool : 1 = current task must yield
  **********************************************************************/
 bool os_handle_list_updateAndCheck(os_handle_t h);
-
-
-/***********************************************************************
- * OS MsgQ update and check
- *
- * @brief This function updates the block list for a messageQ
- *
- * @param os_hMsgQ_t msgQ : [in] msgQ to update
- *
- * @return bool : (1) current task should yeild
- *
- **********************************************************************/
-bool os_msgQ_updateAndCheck(os_hMsgQ_t msgQ);
 
 
 //////////////////////////////////////////////// ELF //////////////////////////////////////////////////

@@ -26,10 +26,10 @@ extern os_list_head_t os_obj_head;	//Head to obj list
  * @param os_handle_t h : [in] object to verify the availability
  *
  **********************************************************************/
-static uint32_t os_sem_getFreeCount(os_handle_t h){
-
+static uint32_t os_sem_getFreeCount(os_handle_t h, os_handle_t takingTask){   
 	/* Check arguments
 	 ------------------------------------------------------*/
+    UNUSED_ARG(takingTask);
 	if(h == NULL) return 0;
 	if(h->type != OS_OBJ_SEM) return 0;
 
@@ -119,24 +119,34 @@ os_err_e os_sem_create(os_handle_t* h, uint16_t init_count, uint16_t max_count, 
 	sem->obj.getFreeCount	= &os_sem_getFreeCount;
 	sem->obj.obj_take		= &os_sem_objTake;
 	sem->obj.blockList		= os_list_init();
-	sem->obj.name			= (char*)name;
+	sem->obj.name			= name == NULL ? NULL : (char*)os_heap_alloc(strlen(name) + 1);
 
+	/* Finish init
+	 ------------------------------------------------------*/
 	sem->count 				= init_count;
 	sem->count_max 			= max_count;
 
 	/* Handles heap errors
 	 ------------------------------------------------------*/
-	if(sem->obj.blockList == NULL){
+	if(sem->obj.blockList == NULL || (sem->obj.name == NULL && name != NULL) ){
+		os_list_clear(sem->obj.blockList);
+		os_heap_free(sem->obj.name);
 		os_heap_free(sem);
 		return OS_ERR_INSUFFICIENT_HEAP;
 	}
+
+	/* Copy name
+	 ------------------------------------------------------*/
+	if(name != NULL)
+		strcpy(sem->obj.name, name);
 
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) sem, OS_LIST_FIRST);
 	if(ret != OS_ERR_OK) {
-		os_heap_free(sem);
 		os_list_clear(sem->obj.blockList);
+		os_heap_free(sem->obj.name);
+		os_heap_free(sem);
 		return ret;
 	}
 
@@ -216,6 +226,7 @@ os_err_e os_sem_delete(os_handle_t h){
 	/* Free memory
 	 ------------------------------------------------------*/
 	os_list_clear(h->blockList);
+	os_heap_free(h->name);
 
 	return os_heap_free(h);
 }

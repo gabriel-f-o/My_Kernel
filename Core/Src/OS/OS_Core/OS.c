@@ -69,7 +69,7 @@ os_err_e os_init(char* main_name, int8_t main_task_priority, uint32_t interrput_
 	/* Set priorities for pendSv and systick
 	 ------------------------------------------------------*/
 	OS_SYSTICK_DISABLE();
-	OS_SYSTICK_SET_PRIO(14);
+	OS_SYSTICK_SET_PRIO(2);
 	OS_PENDSV_SET_PRIO(15);
 	OS_SYSTICK_ENABLE();
 
@@ -87,6 +87,6 @@ os_err_e os_init(char* main_name, int8_t main_task_priority, uint32_t interrput_
 	 ------------------------------------------------------*/
 	os_init_done = ret == OS_ERR_OK ? 1 : 0;
 
-	return os_task_create(&idle_task, idle_name, os_idle_task_fn, OS_TASK_MODE_DELETE, 0, idle_stack_size, NULL);
+	return os_task_create(&idle_task, idle_name, os_idle_task_fn, OS_TASK_MODE_DELETE, 0, idle_stack_size, 0, NULL);
 }
 

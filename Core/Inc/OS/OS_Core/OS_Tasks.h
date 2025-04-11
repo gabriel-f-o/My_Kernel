@@ -10,6 +10,7 @@
 
 #include "OS/OS_Core/OS_Common.h"
 #include "OS/OS_Core/OS_Obj.h"
+#include "OS/OS_Core/OS_Tick.h"
 
 /**********************************************
  * PUBLIC TYPES
@@ -69,18 +70,19 @@ typedef struct os_task_{
  *
  * @brief This function creates a new task, that will be called by the scheduler when the correct time comes
  *
- * @param os_handle_t* h		: [out] handle to object
- * @param char* name 			: [ in] name of the task
- * @param void* (*fn)(void*) 	: [ in] task's main function to be called
- * @param os_task_mode_e mode	: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
- * @param int8_t priority		: [ in] A priority to the task (0 is lowest priority) cannot be negative
- * @param uint32_t stack_size 	: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
- * @param void* arg				: [ in] Argument to be passed to the task
+ * @param os_handle_t* h						: [out] handle to object
+ * @param char* name 							: [ in] name of the task
+ * @param void* (*fn)(int argc, char* argv[]) 	: [ in] task's main function to be called
+ * @param os_task_mode_e mode					: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
+ * @param int8_t priority						: [ in] A priority to the task (0 is lowest priority) cannot be negative
+ * @param uint32_t stack_size 					: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
+ * @param int argc							    : [ in] First argument to be passed to the task (used for argc)
+ * @param char* argv[]							: [ in] Second argument to be passed to the task (used for argv)
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void* i), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg);
+os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(int argc, char* argv[]), os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, char** argv);
 
 
 /***********************************************************************
@@ -219,6 +221,16 @@ os_handle_t os_task_getByPID(uint16_t pid);
 
 
 /***********************************************************************
+ * OS get current task
+ *
+ * @brief Get current task
+ *
+ * @return os_task_t* : reference to the current task
+ **********************************************************************/
+os_task_t const * os_task_getCurrentTask(void);
+
+
+/***********************************************************************
  * OS Get Task from handle
  *
  * @brief This function gets the task object from the handle
@@ -232,6 +244,19 @@ static inline os_task_t* os_task_getFromHandle(os_handle_t h){
 	if(h->type != OS_OBJ_TASK) return NULL;
 
 	return (os_task_t*)h;
+}
+
+/***********************************************************************
+ * OS Task Wait
+ *
+ * @brief This function performs a blocking wait for an amount of MS
+ *
+ * @param uint32_t ms : [in] amount of ticks to block
+ *
+ **********************************************************************/
+static inline void os_task_wait(uint32_t ms){
+    uint32_t volatile enter = os_getMsTick();
+	while(os_getMsTick() - enter < ms) continue;
 }
 
 #endif /* INC_OS_OS_TASKS_H_ */

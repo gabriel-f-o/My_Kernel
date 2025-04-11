@@ -35,7 +35,7 @@
 #if defined(PRINT_ENABLE) && PRINT_ENABLE == 1
 //#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define PRINTF(S, ...) 		printf(S, ## __VA_ARGS__)
-#define PRINT(S, ...) 		PRINTF("[%s:%03d]:" S, __FILENAME__, __LINE__, ## __VA_ARGS__)
+#define PRINT(S, ...) 		PRINTF("[%s:%03d]:" S, __FILE_NAME__, __LINE__, ## __VA_ARGS__)
 #define PRINTLN(S, ...) 	PRINT (S "\r\n", ## __VA_ARGS__)
 #else
 #define PRINTF(S, ...)

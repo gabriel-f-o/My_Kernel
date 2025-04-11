@@ -31,24 +31,23 @@ typedef struct os_msgQ_{
 	os_msgQ_mode_e	mode;			//Message queue mode (FIFO or LIFO)
 } os_msgQ_t;
 
-typedef os_msgQ_t* os_hMsgQ_t;
-
 /**********************************************
  * PUBLIC FUNCTIONS
  *********************************************/
+
 
 /***********************************************************************
  * OS MsgQ Create
  *
  * @brief This function creates a message queue
  *
- * @param os_hMsgQ_t* msgQ 		: [out] handle to msgQ
+ * @param os_handle_t* msgQ 	: [out] handle to msgQ
  * @param os_msgQ_mode_e mode 	: [ in] The queue's mode: FIFO or LIFO
  * @param char* name			: [ in] messqge Q name. If a queue with the same name already exists, its reference is returned. A null name always creates a nameless queue.
  *
  * @return os_err_e OS_ERR_OK if OK
  **********************************************************************/
-os_err_e os_msgQ_create(os_hMsgQ_t* msgQ, os_msgQ_mode_e mode, char const * name);
+os_err_e os_msgQ_create(os_handle_t* msgQ, os_msgQ_mode_e mode, char const * name);
 
 
 /***********************************************************************
@@ -56,12 +55,25 @@ os_err_e os_msgQ_create(os_hMsgQ_t* msgQ, os_msgQ_mode_e mode, char const * name
  *
  * @brief This function pushes a message into the queue depending on the mode
  *
- * @param os_hMsgQ_t msgQ  	: [ in] Handle to the queue
- * @param void* msg      	: [ in] Reference to the message
+ * @param os_handle_t h : [ in] Handle to the queue
+ * @param void* msg     : [ in] Reference to the message
  *
  * @return os_err_e OS_ERR_OK if OK
  **********************************************************************/
-os_err_e os_msgQ_push(os_hMsgQ_t msgQ, void* msg);
+os_err_e os_msgQ_push(os_handle_t h, void* msg);
+
+
+/***********************************************************************
+ * OS MsgQ Pop
+ *
+ * @brief This function pops a message from the queue
+ *
+ * @param os_handle_t h : [ in] Handle to the queue
+ * @param os_err_e* err : [out] Reference to the error message. NULL to ignore
+ *
+ * @return os_err_e OS_ERR_OK if OK
+ **********************************************************************/
+void* os_msgQ_pop(os_handle_t h, os_err_e* err);
 
 
 /***********************************************************************
@@ -69,12 +81,12 @@ os_err_e os_msgQ_push(os_hMsgQ_t msgQ, void* msg);
  *
  * @brief This function deletes a message queue
  *
- * @param os_hMsgQ_t msgQ  	: [ in] Handle to the queue
- * @param void* msg      	: [ in] Reference to the message
+ * @param os_handle_t h : [ in] Handle to the queue
+ * @param void* msg     : [ in] Reference to the message
  *
  * @return os_err_e OS_ERR_OK if OK
  **********************************************************************/
-os_err_e os_msgQ_delete(os_hMsgQ_t msgQ);
+os_err_e os_msgQ_delete(os_handle_t h);
 
 
 /***********************************************************************
@@ -82,24 +94,11 @@ os_err_e os_msgQ_delete(os_hMsgQ_t msgQ);
  *
  * @brief This function gets the number of messages in a queue
  *
- * @param os_hMsgQ_t msgQ  	: [ in] Handle to the queue
+ * @param os_handle_t h	: [ in] Handle to the queue
  *
- * @return int32_t : negative number if error. The number of messages in the queue if >=0
+ * @return uint32_t : 0xFFFFFFFF if error. The number of messages in the queue if >=0
  **********************************************************************/
-uint32_t os_msgQ_getNumberOfMsgs(os_hMsgQ_t msgQ);
+uint32_t os_msgQ_getNumberOfMsgs(os_handle_t h);
 
-
-/***********************************************************************
- * OS MsgQ wait
- *
- * @brief This function waits for a message, returing the message received.
- *
- * @param os_hMsgQ_t msgQ  			: [ in] Handle to the queue
- * @param uint32_t timeout_ticks	: [ in] Wait timeout. OS_WAIT_FOREVER to wait forever. OS_WAIT_NONE to not block.
- * @param os_err_e* err				: [out] Error code or NULL to ignore
- *
- * @return int32_t : negative number if error. The number of messages in the queue if >=0
- **********************************************************************/
-void* os_msgQ_wait(os_hMsgQ_t msgQ, uint32_t timeout_ticks, os_err_e* err);
 
 #endif /* INC_OS_OS_MSGQ_H_ */

@@ -13,6 +13,7 @@
 #include "OS/OS_Core/OS_Tasks.h"
 #include "OS/OS_FS/lfs.h"
 #include "common.h"
+
 /**********************************************
  * EXTERNAL VARIABLES
  *********************************************/
@@ -185,9 +186,9 @@ void os_obj_updatePrio(os_handle_t h){
 
 			/* update msgQ
 			 ---------------------------------------------------*/
-			if(((os_task_t*)h)->objWaited[i]->type == OS_OBJ_MSGQ){
+			/*if(((os_task_t*)h)->objWaited[i]->type == OS_OBJ_MSGQ){
 				os_msgQ_updateAndCheck((os_hMsgQ_t)((os_task_t*)h)->objWaited[i]);
-			}
+			}*/
 		}
 	}
 
@@ -447,7 +448,8 @@ os_err_e os_list_remove(os_list_head_t* head, void* el){
 	/* Kill cell
 	 ------------------------------------------------------*/
 	pPrev->next = pPrev->next->next;
-	if(pCell->next != NULL) pCell->next->prev = pCell->prev;
+	if(pCell->next != NULL) 
+        pCell->next->prev = pCell->prev;
 
 	/* Reduce size and return
 	 ------------------------------------------------------*/
@@ -635,6 +637,9 @@ void os_task_list_sort(os_list_head_t* head){
 				pN1->next = pN2->next;
 				pN2->next = pN1;
 
+                pN2->prev = pN1->prev;
+                pN1->prev = pN2;
+
 				changeMade = 1;
 
 			}
@@ -691,9 +696,13 @@ bool os_task_list_isObjFreeOnTask(os_handle_t obj, os_handle_t task){
 	OS_DECLARE_IRQ_STATE;
 	OS_ENTER_CRITICAL();
 
-	/* Get current free count
+	/* Get current free count and return if topic
 	 ---------------------------------------------------*/
-	uint32_t freeCount = obj->getFreeCount(obj);
+	uint32_t freeCount = obj->getFreeCount(obj, task);
+	if(obj->type == OS_OBJ_TOPIC){
+        OS_EXIT_CRITICAL();
+		return freeCount > 0;
+    }
 
 	/* If it is 0, return 0 immediately
 	 ---------------------------------------------------*/
@@ -815,7 +824,7 @@ bool os_handle_list_updateAndCheck(os_handle_t h){
 
 		/* Get the number of times we can get the object
 		 ---------------------------------------------------*/
-		uint32_t freeCount = h->getFreeCount(h);
+		uint32_t freeCount = h->type == OS_OBJ_TOPIC ? 0 : h->getFreeCount(h, NULL);
 
 		/* Updates every task on the block list
 		 ---------------------------------------------------*/
@@ -825,6 +834,10 @@ bool os_handle_list_updateAndCheck(os_handle_t h){
 			 ---------------------------------------------------*/
 			os_task_t* t = (os_task_t*)it->element;
 			if(t->state == OS_TASK_DELETING || t->state == OS_TASK_ENDED) continue;
+
+			if(h->type == OS_OBJ_TOPIC){
+				freeCount = h->getFreeCount(h, (os_handle_t) t);
+			}
 
 			/* If the task is only waiting one object
 			 ---------------------------------------------------*/
@@ -973,87 +986,6 @@ bool os_handle_list_updateAndCheck(os_handle_t h){
 		 * 2 - makes sure that an object is updated ultil the end before switching to another one
 		 ---------------------------------------------------*/
 		h = os_handle_list_getObjToUpdate();
-	}
-
-	/* Calculate if we must yield or not
-	 ---------------------------------------------------*/
-	bool mustYield = maxPrio > 0 ? maxPrio > os_task_getPrio(os_cur_task->element) : 0;
-
-	OS_EXIT_CRITICAL();
-	return mustYield;
-}
-
-
-/***********************************************************************
- * OS MsgQ update and check
- *
- * @brief This function updates the block list for a messageQ
- *
- * @param os_hMsgQ_t msgQ : [in] msgQ to update
- *
- * @return bool : (1) current task should yeild
- *
- **********************************************************************/
-bool os_msgQ_updateAndCheck(os_hMsgQ_t msgQ){
-
-	/* Error check
-	 ---------------------------------------------------*/
-	if(msgQ == NULL) return 0;
-	if(msgQ->obj.type != OS_OBJ_MSGQ) return 0;
-
-	/* Enter critical
-	 ---------------------------------------------------*/
-	OS_DECLARE_IRQ_STATE;
-	OS_ENTER_CRITICAL();
-
-	/* Declares auxiliary variables and starts the update
-	 ---------------------------------------------------*/
-	int8_t maxPrio = -1;
-
-	/* Sort List
-	 ---------------------------------------------------*/
-	os_task_list_sort(msgQ->obj.blockList);
-
-	/* Get the number of times we can get the object
-	 ---------------------------------------------------*/
-	uint32_t freeCount = ((os_list_head_t*)msgQ->msgList)->listSize;
-
-	/* Updates every task on the block list
-	 ---------------------------------------------------*/
-	for(os_list_cell_t* it = ((os_list_head_t*)msgQ->obj.blockList)->head.next; it != NULL; it = it->next){
-
-		/* Ignore deleting and ended tasks
-		 ---------------------------------------------------*/
-		os_task_t* t = (os_task_t*)it->element;
-		if(t->state == OS_TASK_DELETING || t->state == OS_TASK_ENDED) continue;
-
-		/* If the object can still be taken
-		 ---------------------------------------------------*/
-		if(freeCount != 0){
-
-			/* Tag task as ready
-			 ---------------------------------------------------*/
-			t->objWanted = 0;
-			t->state = OS_TASK_READY;
-
-			/* Decrement freecount if needed
-			 ---------------------------------------------------*/
-			freeCount = freeCount != OS_OBJ_COUNT_INF && freeCount > 0 ? freeCount - 1 : freeCount;
-		}
-
-		/* If the object cannot be taken
-		 ---------------------------------------------------*/
-		else{
-
-			/* Just update task infos
-			 ---------------------------------------------------*/
-			t->objWanted = 0xFFFFFFFF;
-			t->state = t->wakeCoutdown == 0 ? OS_TASK_READY : OS_TASK_BLOCKED;
-		}
-
-		/* If the task is ready, get its priority to check if we should yeild
-		 ---------------------------------------------------*/
-		maxPrio = t->state == OS_TASK_READY && maxPrio < t->priority ? t->priority : maxPrio;
 	}
 
 	/* Calculate if we must yield or not

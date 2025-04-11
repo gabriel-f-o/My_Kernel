@@ -12,6 +12,7 @@
 #include "OS/OS_Core/OS_Internal.h"
 #include "OS/OS_Core/OS_Obj.h"
 #include "OS/OS_Core/OS_Scheduler.h"
+#include "OS/OS_Core/OS.h"
 
 /**********************************************
  * EXTERNAL VARIABLES
@@ -51,6 +52,8 @@ uint32_t os_getMsTick(){
  *
  **********************************************************************/
 void os_tick(uint32_t ms_inc){
+	if(!os_init_get())
+		return;
 
 	/* Enter Critical -> If the list is changed during the process, this can corrupt our references
 	 ------------------------------------------------------*/
@@ -101,7 +104,8 @@ void os_tick(uint32_t ms_inc){
 
 	/* PendSV if necessary
 	 ------------------------------------------------------*/
-	if(pend_req == 1 && os_scheduler_state_get() == OS_SCHEDULER_START) os_task_yeild();
+	if(pend_req == 1 && os_scheduler_state_get() == OS_SCHEDULER_START) 
+		os_task_yeild();
 
 	/* Return
 	 ------------------------------------------------------*/

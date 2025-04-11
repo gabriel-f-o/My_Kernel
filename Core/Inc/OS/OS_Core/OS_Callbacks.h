@@ -48,7 +48,7 @@ void os_task_on_block_cb(os_handle_t h);
  * @return : void* : generic return value
  *
  **********************************************************************/
-void* os_idle_task_fn(void* i);
+__weak void* os_idle_task_fn(int argc, char* argv[]);
 
 
 /***********************************************************************

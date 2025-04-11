@@ -39,6 +39,7 @@ os_list_head_t os_obj_head;	//Head to obj list
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
  *
  * @param os_handle_t objList[]  : [ in] Array containing all objects to wait
  * @param size_t objNum			 : [ in] number of objects to wait
@@ -58,9 +59,6 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 
 	for(size_t i = 0; i < objNum; i++){
 		error |= objList[i] == NULL;
-		if(objList[i] != NULL){
-			error |= objList[i]->type == OS_OBJ_MSGQ;
-		}
 	}
 
 	/* Return if error
@@ -94,7 +92,7 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 
 			/* Get free count
 			 ---------------------------------------------------*/
-			uint32_t freeCount = ( (objList[i]->getFreeCount != NULL) ? objList[i]->getFreeCount(objList[i]) : 1 );
+			uint32_t freeCount = ( (objList[i]->getFreeCount != NULL) ? objList[i]->getFreeCount(objList[i], os_cur_task->element) : 1 );
 
 			/* Update flag to use if we should wait all
 			 ---------------------------------------------------*/
@@ -136,7 +134,7 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
 
 					/* Releases any mutex taken
 					 ---------------------------------------------------*/
-					for(int j = 0; j < i; j++){
+					for(size_t j = 0; j < i; j++){
 						if(objList[j]->type == OS_OBJ_MUTEX){
 							os_mutex_release(objList[j]);
 						}
@@ -409,7 +407,8 @@ static os_handle_t os_obj_wait(os_handle_t objList[], size_t objNum, os_obj_wait
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @param os_handle_t obj  		 : [ in] Handle of the object to wait
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns imediately
  * @parem os_err_e* err			 : [out] Error code. Ignored if NULL.
@@ -434,7 +433,8 @@ os_handle_t os_obj_single_wait(os_handle_t obj, uint32_t timeout_ticks, os_err_e
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @parem os_err_e* err			 : [out] Error code. Ignored if NULL.
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
  * @param size_t objNum			 : [ in] number of objects to wait
@@ -474,7 +474,8 @@ os_handle_t os_obj_multiple_WaitAll(os_err_e* err, uint32_t timeout_ticks, size_
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @parem os_err_e* err			 : [out] Error code. Ignored if NULL.
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
  * @param size_t objNum			 : [ in] number of objects to wait
@@ -514,7 +515,8 @@ os_handle_t os_obj_multiple_WaitOne(os_err_e* err, uint32_t timeout_ticks, size_
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @param os_handle_t objList[]  : [ in] Array containing all objects to wait
  * @param size_t objNum			 : [ in] number of objects to wait
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
@@ -539,7 +541,8 @@ os_handle_t os_obj_multiple_lWaitAll(os_handle_t objList[], size_t objNum, uint3
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @param os_handle_t objList[]  : [ in] Array containing all objects to wait
  * @param size_t objNum			 : [ in] number of objects to wait
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
@@ -564,7 +567,8 @@ os_handle_t os_obj_multiple_lWaitOne(os_handle_t objList[], size_t objNum, uint3
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @parem os_err_e* err			 : [out] Error code. Ignored if NULL.
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
  * @param size_t objNum			 : [ in] number of objects to wait
@@ -594,7 +598,8 @@ os_handle_t os_obj_multiple_vWaitAll(os_err_e* err, uint32_t timeout_ticks, size
  * OS_OBJ_SEM   : The semaphore has at least one free counter
  * OS_OBJ_MUTEX : The mutex is free
  * OS_OBJ_EVT   : The event is set
- *
+ * OS_OBJ_MSGQ  : There is at least one message in the queue
+
  * @parem os_err_e* err			 : [out] Error code. Ignored if NULL.
  * @param uint32_t timeout_ticks : [ in] Amount of time before a timeout is detected. If OS_WAIT_FOREVER, the task blocks forever. If OS_WAIT_NONE, the task returns immediately
  * @param size_t objNum			 : [ in] number of objects to wait

@@ -31,10 +31,10 @@ extern os_list_head_t  os_obj_head;	//Head to obj list
  * @return uint32_t : the amount of times the object can be taken
  *
  **********************************************************************/
-static uint32_t os_evt_getFreeCount(os_handle_t h){
-
+static uint32_t os_evt_getFreeCount(os_handle_t h, os_handle_t takingTask){
 	/* Check arguments
 	 ------------------------------------------------------*/
+    UNUSED_ARG(takingTask);
 	if(h == NULL) return 0;
 	if(h->type != OS_OBJ_EVT) return 0;
 
@@ -142,25 +142,35 @@ os_err_e os_evt_create(os_handle_t* h, os_evt_reset_mode_e mode, char const * na
 	evt->obj.getFreeCount	= os_evt_getFreeCount;
 	evt->obj.obj_take		= os_evt_objTake;
 	evt->obj.blockList		= os_list_init();
-	evt->obj.name			= (char*)name;
+	evt->obj.name			= name == NULL ? NULL : (char*)os_heap_alloc(strlen(name) + 1);
 
+	/* Finish init
+	 ------------------------------------------------------*/
 	evt->state				= OS_EVT_STATE_RESET;
 	evt->mode				= mode;
 
 	/* Handles heap errors
 	 ------------------------------------------------------*/
-	if(evt->obj.blockList == NULL){
+	if(evt->obj.blockList == NULL || (evt->obj.name == NULL && name != NULL) ){
+		os_list_clear(evt->obj.blockList);
+		os_heap_free(evt->obj.name);
 		os_heap_free(evt);
 		return OS_ERR_INSUFFICIENT_HEAP;
 	}
+
+	/* Copy name
+	 ------------------------------------------------------*/
+	if(name != NULL)
+		strcpy(evt->obj.name, name);
 
 	/* Add object to object list
 	 ------------------------------------------------------*/
 	os_err_e ret = os_list_add(&os_obj_head, (os_handle_t) evt, OS_LIST_FIRST);
 	if(ret != OS_ERR_OK) {
-		os_heap_free(evt);
 		os_list_clear(evt->obj.blockList);
-		return OS_ERR_INSUFFICIENT_HEAP;
+		os_heap_free(evt->obj.name);
+		os_heap_free(evt);
+		return ret;
 	}
 
 	/* Return
@@ -333,6 +343,7 @@ os_err_e os_evt_delete(os_handle_t h){
 	/* Free memory
 	 ------------------------------------------------------*/
 	os_list_clear(h->blockList);
+	os_heap_free(h->name);
 
 	return os_heap_free(h);
 }

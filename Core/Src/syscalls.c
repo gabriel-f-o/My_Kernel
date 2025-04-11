@@ -46,11 +46,11 @@ char **environ = __env;
 
 
 int __io_putchar(int ch){
-	os_obj_single_wait(uartMutex, OS_WAIT_FOREVER, NULL);
+	//os_obj_single_wait(uartMutex, OS_WAIT_FOREVER, NULL);
 
 	HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, 1000);
 
-	os_mutex_release(uartMutex);
+	//os_mutex_release(uartMutex);
 	return 0;
 }
 

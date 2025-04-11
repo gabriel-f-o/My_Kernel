@@ -28,6 +28,7 @@ static char cliBuffer[128];
  **********************************************************************/
 void cli_rcv_char_cb_irq(){
 	cli_insert_char(cliBuffer, sizeof(cliBuffer), cli_char);
+	HAL_UART_Transmit(&USART_CLI, (uint8_t*)&cli_char, 1, 10);
 	HAL_UART_Receive_IT(&USART_CLI, (uint8_t*)&cli_char, 1);
 }
 

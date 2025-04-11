@@ -44,7 +44,6 @@ const os_fn_link_table_el_t os_link_table[] = {
 		OS_LINK_FN("os_msgQ_push", 				os_msgQ_push),
 		OS_LINK_FN("os_msgQ_delete", 			os_msgQ_delete),
 		OS_LINK_FN("os_msgQ_getNumberOfMsgs", 	os_msgQ_getNumberOfMsgs),
-		OS_LINK_FN("os_msgQ_wait", 				os_msgQ_wait),
 
 		/* Mutex
 		 ---------------------------------------------------*/
