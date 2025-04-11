@@ -1,3 +1,0 @@
-OS_leds.c:24:6:os_leds_set	0	static
-OS_leds.c:47:6:os_leds_get	8	static
-OS_leds.c:72:6:os_leds_toggle	0	static

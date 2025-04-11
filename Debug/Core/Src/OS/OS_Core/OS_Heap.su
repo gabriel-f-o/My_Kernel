@@ -1,5 +1,0 @@
-OS_Heap.c:40:24:os_heap_BlockGetSize	0	static
-OS_Heap.c:148:6:os_heap_clear	0	static
-OS_Heap.c:174:7:os_heap_alloc	24	static,ignoring_inline_asm
-OS_Heap.c:238:10:os_heap_free	24	static,ignoring_inline_asm
-OS_Heap.c:318:15:os_heap_monitor	48	static,ignoring_inline_asm

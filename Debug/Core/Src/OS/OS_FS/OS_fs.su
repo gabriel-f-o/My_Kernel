@@ -1,5 +1,0 @@
-OS_fs.c:42:10:os_fopen	24	static
-OS_fs.c:107:5:os_fclose	24	static
-OS_fs.c:160:8:os_fread	24	static
-OS_fs.c:200:8:os_fwrite	24	static
-OS_fs.c:239:5:os_fseek	32	static

@@ -1,5 +1,0 @@
-OS_Scheduler.c:132:20:os_scheduler	48	static,ignoring_inline_asm
-OS_Scheduler.c:196:14:PendSV_Handler	0	static,ignoring_inline_asm
-OS_Scheduler.c:255:10:os_scheduler_start	16	static,ignoring_inline_asm
-OS_Scheduler.c:285:6:os_scheduler_stop	8	static,ignoring_inline_asm
-OS_Scheduler.c:308:22:os_scheduler_state_get	0	static

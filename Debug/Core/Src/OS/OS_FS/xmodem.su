@@ -1,3 +1,0 @@
-xmodem.c:119:13:sendResponse	16	static
-xmodem.c:213:17:xModem_getState	0	static
-xmodem.c:225:7:xModem_rcv	272	static

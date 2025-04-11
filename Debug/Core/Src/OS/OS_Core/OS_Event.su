@@ -1,8 +1,0 @@
-OS_Event.c:75:17:os_evt_objTake	0	static
-OS_Event.c:34:17:os_evt_getFreeCount	8	static,ignoring_inline_asm
-OS_Event.c:112:10:os_evt_create	24	static
-OS_Event.c:182:10:os_evt_reset	16	static,ignoring_inline_asm
-OS_Event.c:228:10:os_evt_set	16	static,ignoring_inline_asm
-OS_Event.c:275:10:os_evt_set_mode	16	static,ignoring_inline_asm
-OS_Event.c:322:10:os_evt_delete	8	static
-OS_Event.c:350:16:os_evt_getState	0	static

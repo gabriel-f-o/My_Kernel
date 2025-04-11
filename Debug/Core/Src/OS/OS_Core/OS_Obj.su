@@ -1,8 +1,0 @@
-OS_Obj.c:51:20:os_obj_wait	64	static,ignoring_inline_asm
-OS_Obj.c:419:13:os_obj_single_wait	24	static
-OS_Obj.c:445:13:os_obj_multiple_WaitAll	48	dynamic
-OS_Obj.c:485:13:os_obj_multiple_WaitOne	48	dynamic
-OS_Obj.c:525:13:os_obj_multiple_lWaitAll	16	static
-OS_Obj.c:550:13:os_obj_multiple_lWaitOne	16	static
-OS_Obj.c:575:13:os_obj_multiple_vWaitAll	40	dynamic
-OS_Obj.c:605:13:os_obj_multiple_vWaitOne	40	dynamic
