@@ -88,5 +88,10 @@ os_err_e os_flash_read(uint32_t addr, uint8_t buffer[], size_t len);
  **********************************************************************/
 os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum);
 
+/* Flash init
+ *
+ * @return os_err_e : 0 = OK
+ ------------------------------------------------------*/
+os_err_e os_flash_init(void);
 
 #endif /* INC_OS_OS_DRIVERS_OS_FLASH_H_ */

@@ -222,8 +222,6 @@ void os_lfs_init(){
 	lfs_cfg.block_size = SECTOR_SIZE;
 	lfs_cfg.block_count = (uint32_t)LFS_TOTAL_SIZE/SECTOR_SIZE;
 
-	 //lfs_format(&lfs, &lfs_cfg);
-
 	/* Try to mount the file system
 	 ------------------------------------------------*/
     err = lfs_mount(&lfs, &lfs_cfg);

@@ -268,14 +268,8 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	}
 
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
-	ASSERT(ret == HAL_OK);
-	if(ret != HAL_OK){
-		error = 1;
-	}
 
-	/* Wait for operation to end
-	 ------------------------------------------------------*/
-	ret = FLASH_WaitForLastOperation(1000);
+
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK){
 		error = 1;
@@ -292,10 +286,14 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	return error == 1 ? OS_ERR_UNKNOWN : (int32_t)secNum;
 }
 
-int os_flash_init(){
+/* Flash init
+ *
+ * @return int : 0 = OK
+ ------------------------------------------------------*/
+os_err_e os_flash_init(void){
 	os_err_e err = os_evt_create(&flash_evt, OS_EVT_MODE_AUTO, "flash_evt");
 	if(err != OS_ERR_OK)
-		return 1;
+		return err;
 
-	return HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, dma_tx_done_cb) != HAL_OK;
+	return HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, dma_tx_done_cb) != HAL_OK ? OS_ERR_UNKNOWN : OS_ERR_OK;
 }

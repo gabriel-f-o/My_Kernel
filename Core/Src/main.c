@@ -65,7 +65,7 @@ void* blinky(void){
 
 	while(1){
 		HAL_GPIO_TogglePin(LED_ORANGE_GPIO_Port, LED_ORANGE_Pin);
-		os_task_sleep(1000);
+		os_task_sleep(100);
 	}
 
 }
@@ -104,16 +104,15 @@ int main(void)
   MX_TIM13_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(10000);
 	cli_init();
 	ASSERT(os_init("main", 10, OS_DEFAULT_STACK_SIZE, "idle", OS_DEFAULT_STACK_SIZE) == OS_ERR_OK);
-	ASSERT(os_task_create(&blinky_task, "blinky", blinky, OS_TASK_MODE_DELETE, 2, OS_DEFAULT_STACK_SIZE, 0, NULL) == OS_ERR_OK);
+	ASSERT(os_task_create(&blinky_task, "blinky", (void*)blinky, OS_TASK_MODE_DELETE, 10, OS_DEFAULT_STACK_SIZE, 0, NULL) == OS_ERR_OK);
 	ASSERT(os_mutex_create(&uartMutex, "uart mutex") == OS_ERR_OK);
 	ASSERT(os_mutex_create(&fsMutex, "fs mutex") == OS_ERR_OK);
 	ASSERT(os_scheduler_start() == OS_ERR_OK);
 
 	PRINTLN("Init OS finished");
-	//os_lfs_init();
+	os_lfs_init();
 
   /* USER CODE END 2 */
 
@@ -151,7 +150,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
   RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -163,10 +162,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
