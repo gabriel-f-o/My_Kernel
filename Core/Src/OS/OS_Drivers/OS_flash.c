@@ -7,6 +7,28 @@
 
 
 #include "common.h"
+#include "dma.h"
+#include "OS/OS_Core/OS.h"
+
+os_handle_t flash_evt;
+
+/**
+  * @brief  FLASH end of operation interrupt callback
+  * @param  ReturnValue The value saved in this parameter depends on the ongoing procedure
+  *                  Mass Erase: Bank number which has been requested to erase
+  *                  Sectors Erase: Sector which has been erased
+  *                    (if 0xFFFFFFFFU, it means that all the selected sectors have been erased)
+  *                  Program: Address which was selected for data program
+  * @retval None
+  */
+void HAL_FLASH_EndOfOperationCallback(uint32_t ReturnValue)
+{
+	os_evt_set(flash_evt);
+}
+
+static void dma_tx_done_cb(DMA_HandleTypeDef * hdma){
+	os_evt_set(flash_evt);
+}
 
 /**********************************************
  * PUBLIC FUNCTIONS
@@ -33,16 +55,9 @@ os_err_e os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 	if(addr < FLASH_BASE_ADDR) return OS_ERR_BAD_ARG;
 	if(addr >= FLASH_END_ADDR) return OS_ERR_BAD_ARG;
 
-	/* Wait for last operation
-	 ------------------------------------------------------*/
-	HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(1000);
-	ASSERT(ret == HAL_OK);
-	if(ret != HAL_OK)
-		return OS_ERR_UNKNOWN;
-
 	/* Unlock flash
 	 ------------------------------------------------------*/
-	ret = HAL_FLASH_Unlock();
+	int ret = HAL_FLASH_Unlock();
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
 		return OS_ERR_UNKNOWN;
@@ -73,7 +88,7 @@ os_err_e os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 		 ------------------------------------------------------*/
 		uint32_t writeFlag = FLASH_TYPEPROGRAM_BYTE;
 		writeFlag = lenToWrite == 2 ? FLASH_TYPEPROGRAM_HALFWORD : writeFlag;
-		writeFlag = lenToWrite == 4 ?     FLASH_TYPEPROGRAM_WORD : writeFlag;
+		writeFlag = lenToWrite == 4 ? FLASH_TYPEPROGRAM_WORD     : writeFlag;
 
 		/* Store data in a uint64_t to avoid possible alignment issues
 		 ------------------------------------------------------*/
@@ -83,28 +98,28 @@ os_err_e os_flash_write(uint32_t addr, uint8_t buffer[], size_t len){
 		/* Program flash
 		 ------------------------------------------------------*/
 		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
-		ret = HAL_FLASH_Program(writeFlag, addr, data);
-		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
+		ret = HAL_FLASH_Program_IT(writeFlag, addr, data);
 		ASSERT(ret == HAL_OK);
 		if(ret != HAL_OK){
 			err = 1;
 			break;
 		}
+
+		os_err_e os_err;
+		os_handle_t obj = os_obj_single_wait(flash_evt, OS_WAIT_FOREVER, &os_err);
+		if(obj != flash_evt || os_err != OS_ERR_OK){
+			PRINTLN("Error");
+			err = 1;
+			break;
+		}
+
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 
 		/* Manipulate local vaiables
 		 ------------------------------------------------------*/
 		pos += (int32_t)lenToWrite; //Counts the number of bytes actually written
 		addr += lenToWrite; //Moves to the next address
 		len -= lenToWrite; //reduces length
-
-		/* Wait for operation to end
-		 ------------------------------------------------------*/
-		HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(1000);
-		ASSERT(ret == HAL_OK);
-		if(ret != HAL_OK){
-			err = 1;
-			break;
-		}
 	}
 
 	/* Lock flash again and return error or the amount of bytes
@@ -146,7 +161,16 @@ os_err_e os_flash_read(uint32_t addr, uint8_t buffer[], size_t len){
 	/* Copy data into buffer
 	 ------------------------------------------------------*/
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
-	memcpy(buffer, (void*)addr, readBytes);
+
+	HAL_DMA_Start_IT(&hdma_memtomem_dma2_stream0, (uint32_t)addr, (uint32_t)buffer, readBytes);
+
+	os_err_e os_err;
+	os_handle_t obj = os_obj_single_wait(flash_evt, OS_WAIT_FOREVER, &os_err);
+	if(obj != flash_evt || os_err != OS_ERR_OK){
+		PRINTLN("Error");
+		readBytes = 0;
+	}
+
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 
 	/* Return the amount of bytes
@@ -207,16 +231,9 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 
 	if(firstSector < 0)	return OS_ERR_BAD_ARG;
 
-	/* Wait for operation to end
-	 ------------------------------------------------------*/
-	HAL_StatusTypeDef ret = FLASH_WaitForLastOperation(1000);
-	ASSERT(ret == HAL_OK);
-	if(ret != HAL_OK)
-		return OS_ERR_UNKNOWN;
-
 	/* Unlock flash
 	 ------------------------------------------------------*/
-	ret = HAL_FLASH_Unlock();
+	HAL_StatusTypeDef ret = HAL_FLASH_Unlock();
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK)
 		return OS_ERR_UNKNOWN;
@@ -229,7 +246,6 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	/* Prepare erase configuration
 	 ------------------------------------------------------*/
 	bool error = 0;
-	uint32_t SectorError;
 	FLASH_EraseInitTypeDef eraseConf = {
 			.TypeErase    = FLASH_TYPEERASE_SECTORS, // Erase sectors, not mass erase
 			.Banks	      = FLASH_BANK_1,			 // Unused outside of mass erase
@@ -241,7 +257,16 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	/* Erase sectors
 	 ------------------------------------------------------*/
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 1);
-	ret = HAL_FLASHEx_Erase(&eraseConf, &SectorError);
+
+	ret = HAL_FLASHEx_Erase_IT(&eraseConf);
+
+	os_err_e os_err;
+	os_handle_t obj = os_obj_single_wait(flash_evt, OS_WAIT_FOREVER, &os_err);
+	if(obj != flash_evt || os_err != OS_ERR_OK){
+		PRINTLN("Error");
+		error = 1;
+	}
+
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 0);
 	ASSERT(ret == HAL_OK);
 	if(ret != HAL_OK){
@@ -265,4 +290,12 @@ os_err_e os_flash_erase(uint32_t addrBeg, uint32_t secNum){
 	}
 
 	return error == 1 ? OS_ERR_UNKNOWN : (int32_t)secNum;
+}
+
+int os_flash_init(){
+	os_err_e err = os_evt_create(&flash_evt, OS_EVT_MODE_AUTO, "flash_evt");
+	if(err != OS_ERR_OK)
+		return 1;
+
+	return HAL_DMA_RegisterCallback(&hdma_memtomem_dma2_stream0, HAL_DMA_XFER_CPLT_CB_ID, dma_tx_done_cb) != HAL_OK;
 }

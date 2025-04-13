@@ -227,7 +227,7 @@ static void xmodem(){
 	/* Open file
 	 --------------------------------------------------*/
 	os_handle_t h;
-	os_task_create(&h, "xmodem", (void*)xModem_rcv, OS_TASK_MODE_DELETE, 11, 5 * OS_DEFAULT_STACK_SIZE, (int)arg, NULL);
+	os_task_create(&h, "xmodem", (void*)xModem_rcv, OS_TASK_MODE_DELETE, 50, 5 * OS_DEFAULT_STACK_SIZE, (int)arg, NULL);
 }
 
 /**********************************************************

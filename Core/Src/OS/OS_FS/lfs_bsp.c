@@ -210,14 +210,23 @@ static struct lfs_config lfs_cfg = {
  **********************************************************************/
 void os_lfs_init(){
 
+	/* Init low level
+	 ------------------------------------------------*/
+	int err = os_flash_init();
+	if(err != 0){
+    	PRINTLN("Flash init error %d", err);
+	}
+
 	/* Calculate sector size and number of sector using the pieces of information given by the linker
 	 ------------------------------------------------*/
 	lfs_cfg.block_size = SECTOR_SIZE;
 	lfs_cfg.block_count = (uint32_t)LFS_TOTAL_SIZE/SECTOR_SIZE;
 
+	 //lfs_format(&lfs, &lfs_cfg);
+
 	/* Try to mount the file system
 	 ------------------------------------------------*/
-    int err = lfs_mount(&lfs, &lfs_cfg);
+    err = lfs_mount(&lfs, &lfs_cfg);
     if(err < 0){
 
     	PRINTLN("LFS mount fail %d", err);
