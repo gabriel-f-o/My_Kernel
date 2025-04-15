@@ -30,7 +30,7 @@ void cli_rcv_char_cb_irq();
  * @brief This function initializes the CLI
  *
  **********************************************************************/
-void cli_init();
+void cli_init(void);
 
 /***********************************************************************
  * CLI Process
@@ -38,6 +38,6 @@ void cli_init();
  * @brief This function treats the command sent by CLI
  *
  **********************************************************************/
-void cli_process();
+void cli_process(void);
 
 #endif /* INC_OS_OS_CLI_CLI_PROCESS_H_ */

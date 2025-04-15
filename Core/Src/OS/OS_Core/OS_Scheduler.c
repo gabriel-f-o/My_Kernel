@@ -299,7 +299,7 @@ os_err_e os_scheduler_start(){
  * @brief Stops the scheduler
  *
  **********************************************************************/
-void os_scheduler_stop(){
+os_err_e os_scheduler_stop(){
 
 	/* Enter critical to avoid being interrupted in the middle of the assignment
 	 ------------------------------------------------------*/
@@ -311,6 +311,7 @@ void os_scheduler_stop(){
 
 	);
 
+	return OS_ERR_OK;
 }
 
 

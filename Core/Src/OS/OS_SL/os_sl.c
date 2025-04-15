@@ -18,7 +18,7 @@ extern const os_fn_link_table_el_t os_link_table[];
  * PRIVATE FUNCTIONS
  *********************************************/
 
-static void* __section(".slPtr") __used pOs_sl_translate = &os_sl_translate;
+static void*  __used pOs_sl_translate = &os_sl_translate;
 
 /**********************************************
  * PUBLIC FUNCTIONS

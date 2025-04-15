@@ -11,6 +11,7 @@
 #include "OS/OS_Core/OS_Common.h"
 #include "OS/OS_Core/OS_Obj.h"
 #include "OS/OS_Core/OS_Tick.h"
+#include "OS/OS_Core/OS_Process.h"
 
 /**********************************************
  * PUBLIC TYPES
@@ -46,7 +47,6 @@ typedef struct os_task_{
 	uint32_t	 		stackSize;			// Stores the stack size
 	uint32_t	 		stackBase;			// stores the stack base address
 
-	uint16_t			pid;				//Process ID
 	void*				fnPtr;				//Store the code reference
 	os_handle_t*	 	objWaited;			// Object this task is waiting for
 	size_t	 			sizeObjs;			// Number of objects in list
@@ -59,11 +59,13 @@ typedef struct os_task_{
 
 	int					argc;				//Used to store the number of arguments when loading an elf.
 	char**				argv;				//Array of strings for each argument
+	os_process_t*		process;			//Process atached or NULL if none
 } os_task_t;
 
 /**********************************************
  * PUBLIC FUNCTIONS
  *********************************************/
+
 
 /***********************************************************************
  * OS Task Create
@@ -72,32 +74,38 @@ typedef struct os_task_{
  *
  * @param os_handle_t* h						: [out] handle to object
  * @param char* name 							: [ in] name of the task
- * @param void* (*fn)(int argc, char* argv[]) 	: [ in] task's main function to be called
+ * @param void* (*fn)(void*) 					: [ in] task's main function to be called
  * @param os_task_mode_e mode					: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
  * @param int8_t priority						: [ in] A priority to the task (0 is lowest priority) cannot be negative
  * @param uint32_t stack_size 					: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
- * @param int argc							    : [ in] First argument to be passed to the task (used for argc)
- * @param char* argv[]							: [ in] Second argument to be passed to the task (used for argv)
+ * @param void* arg  						    : [ in] Argument to be passed to the task
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(int argc, char* argv[]), os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, char** argv);
+os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void*), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg);
 
 
 /***********************************************************************
- * OS Create process
+ * OS Task Create Process flavor
  *
- * @brief This function creates a process using its ELF file
+ * @brief This function creates a new task, that will be called by the scheduler when the correct time comes
  *
- * @param char* file   : [in] File's name
- * @param void* argc   : [in] Argument number to be passed to the task
- * @param char* argv[] : [in] Array of strings to be passed to the task
+ * @param os_handle_t* h						: [out] handle to object
+ * @param char* name 							: [ in] name of the task
+ * @param int (*fn)(int, char**) 				: [ in] task's main function to be called
+ * @param os_process_t* proc					: [ in] Attached process (NULL if none)
+ * @param os_task_mode_e mode					: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
+ * @param int8_t priority						: [ in] A priority to the task (0 is lowest priority) cannot be negative
+ * @param uint32_t stack_size 					: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
+ * @param int argc  						    : [ in] argc argument to be passed to the task
+ * @param char** argv  						    : [ in] argv argument to be passed to the task
+ * @param uint32_t r9  						    : [ in] r9 value (must be GOT base address)
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_createProcess(char* file, int argc, char* argv[]);
+os_err_e os_task_createProc(os_handle_t* h, char const * name, int (*fn)(int argc, char* argv[]), os_process_t* proc, os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, char** argv, uint32_t r9);
 
 
 /***********************************************************************

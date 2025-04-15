@@ -82,7 +82,6 @@ const os_fn_link_table_el_t os_link_table[] = {
 		/* Tasks
 		 ---------------------------------------------------*/
 		OS_LINK_FN("os_task_create", 			os_task_create),
-		OS_LINK_FN("os_task_createProcess", 	os_task_createProcess),
 		OS_LINK_FN("os_task_end", 				os_task_end),
 		OS_LINK_FN("os_task_return", 			os_task_return),
 		OS_LINK_FN("os_task_delete", 			os_task_delete),
@@ -91,7 +90,6 @@ const os_fn_link_table_el_t os_link_table[] = {
 		OS_LINK_FN("os_task_sleep", 			os_task_sleep),
 		OS_LINK_FN("os_task_getReturn", 		os_task_getReturn),
 		OS_LINK_FN("os_task_getState",			os_task_getState),
-		OS_LINK_FN("os_task_getByPID", 			os_task_getByPID),
 
 		/* LEDS
 		 ---------------------------------------------------*/

@@ -43,10 +43,9 @@ _Min_Stack_Size = 0x200 ;	/* required amount of stack */
 MEMORY
 {
   CCMRAM    (xrw)   : ORIGIN = 0x10000000,   LENGTH = 64K
-  SL_PTR (xrw)		: ORIGIN = 0x20000000, LENGTH = 4
-  RAM    (xrw)      : ORIGIN = ORIGIN(SL_PTR) + LENGTH(SL_PTR),   LENGTH = 128K - LENGTH(SL_PTR)
-  FLASH    (rx)     : ORIGIN = 0x8000000,   LENGTH = 1024K - _LFS_SIZE
-  LFS		(rx)	: ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = _LFS_SIZE
+  RAM       (xrw)   : ORIGIN = 0x20000000,   LENGTH = 128K
+  FLASH      (rx)   : ORIGIN = 0x8000000,   LENGTH = 1024K - _LFS_SIZE
+  LFS	     (rx)	: ORIGIN = ORIGIN(FLASH) + LENGTH(FLASH), LENGTH = _LFS_SIZE
 }
 
 /* Sections */
@@ -128,15 +127,6 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
     . = ALIGN(4);
   } >FLASH
-  
-  _sislPtr = LOADADDR(.slPtr);
-  
-  .slPtr :{
-  	_sslPtr = .;
-  	KEEP(*(.slPtr))
-  	KEEP(*(.slPtr*))
-  	_eslPtr = .;
-  } >SL_PTR AT> FLASH
 
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);

@@ -88,6 +88,10 @@
 #define __align(x)			__attribute__((aligned(x)))
 #endif
 
+#ifndef __O0
+#define __O0				__attribute__((optimize("O0")))
+#endif
+
 #ifndef __section
 #define __section(x)		__attribute__((section(x)))
 #endif

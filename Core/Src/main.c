@@ -59,13 +59,14 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-os_handle_t blinky_task;
+static os_handle_t blinky_task;
+static os_handle_t cli_task;
 
 void* blinky(void){
 
 	while(1){
 		HAL_GPIO_TogglePin(LED_ORANGE_GPIO_Port, LED_ORANGE_Pin);
-		os_task_sleep(100);
+		os_task_sleep(500);
 	}
 
 }
@@ -104,9 +105,9 @@ int main(void)
   MX_TIM13_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	cli_init();
-	ASSERT(os_init("main", 10, OS_DEFAULT_STACK_SIZE, "idle", OS_DEFAULT_STACK_SIZE) == OS_ERR_OK);
-	ASSERT(os_task_create(&blinky_task, "blinky", (void*)blinky, OS_TASK_MODE_DELETE, 10, OS_DEFAULT_STACK_SIZE, 0, NULL) == OS_ERR_OK);
+	ASSERT(os_init("main", 80, OS_DEFAULT_STACK_SIZE, "idle", OS_DEFAULT_STACK_SIZE) == OS_ERR_OK);
+	ASSERT(os_task_create(&blinky_task, "blinky", (void*)blinky,	  OS_TASK_MODE_DELETE, 80, OS_DEFAULT_STACK_SIZE, 0) == OS_ERR_OK);
+	ASSERT(os_task_create(&cli_task, 	"cli",    (void*)cli_process, OS_TASK_MODE_DELETE, 80, OS_DEFAULT_STACK_SIZE, 0) == OS_ERR_OK);
 	ASSERT(os_mutex_create(&uartMutex, "uart mutex") == OS_ERR_OK);
 	ASSERT(os_mutex_create(&fsMutex, "fs mutex") == OS_ERR_OK);
 	ASSERT(os_scheduler_start() == OS_ERR_OK);
@@ -114,14 +115,12 @@ int main(void)
 	PRINTLN("Init OS finished");
 	os_lfs_init();
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while(1)
-	{
-		cli_process();
-	}
+	os_task_sleep(OS_WAIT_FOREVER);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

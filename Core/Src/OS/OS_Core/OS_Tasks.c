@@ -151,6 +151,7 @@ static os_err_e os_task_objTake(os_handle_t h, os_handle_t takingTask){
  * @param os_handle_t* h		: [out] handle to object
  * @param char* name 			: [ in] name of the task
  * @param void* (*fn)        	: [ in] task's main function to be called
+ * @param os_process_t* proc	: [ in] Attached process (NULL if none)
  * @param os_task_mode_e mode	: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
  * @param int8_t priority		: [ in] A priority to the task (0 is lowest priority) cannot be negative
  * @param uint32_t stack_size 	: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
@@ -161,7 +162,7 @@ static os_err_e os_task_objTake(os_handle_t h, os_handle_t takingTask){
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(int argc, char* argv[]), os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, void* argv, uint32_t r9)
+static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(int argc, char* argv[]), os_process_t* proc, os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* argc, void* argv, uint32_t r9)
 {
 	/* Check for argument errors
 	 ------------------------------------------------------*/
@@ -198,26 +199,6 @@ static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(int
 		return OS_ERR_INSUFFICIENT_HEAP;
 	}
 
-	/* Create a unique PID
-	 ------------------------------------------------------*/
-	uint16_t pid = 0;
-	uint32_t attempts = 0;
-	while(1){
-
-		/* Generate PID using the tick
-		 ------------------------------------------------------*/
-		uint32_t ms = os_getMsTick() + attempts;
-		pid = (uint16_t)( (ms & 0xFF) ^ ((ms >> 16) & 0xFF) );
-
-		/* Check if PID exists
-		 ------------------------------------------------------*/
-		if(os_task_getByPID(pid) == NULL){
-			break;
-		}
-
-		attempts++;
-	}
-
 	/* Init Task
 	 ------------------------------------------------------*/
 	t->obj.objUpdate	= 0;
@@ -230,7 +211,6 @@ static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(int
 	t->fnPtr			= fn;
 	t->basePriority		= priority;
 	t->priority		    = priority;
-	t->pid				= pid;
 	t->state			= OS_TASK_READY;
 	t->wakeCoutdown	 	= 0;
 	t->stackBase		= (stk + stack_size);
@@ -243,6 +223,7 @@ static os_err_e os_task_start(os_handle_t* h, char const * name, void* (*fn)(int
 
 	t->argc				= argv == NULL ? 0 : (int)argc;
 	t->argv				= argv;
+	t->process			= proc;
 
 	/* Init Task Stack
 	 ------------------------------------------------------*/
@@ -371,7 +352,6 @@ os_err_e os_task_init(char* main_name, int8_t main_task_priority, uint32_t inter
 
 	t->basePriority 		= main_task_priority;
 	t->priority		    	= main_task_priority;
-	t->pid					= 0;
 	t->state	 			= OS_TASK_READY;
 	t->pStack   			= NULL;
 	t->wakeCoutdown  		= 0;
@@ -489,49 +469,46 @@ bool os_task_must_yeild(){
  *
  * @param os_handle_t* h						: [out] handle to object
  * @param char* name 							: [ in] name of the task
- * @param void* (*fn)(int argc, char* argv[]) 	: [ in] task's main function to be called
+ * @param void* (*fn)(void*) 					: [ in] task's main function to be called
  * @param os_task_mode_e mode					: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
  * @param int8_t priority						: [ in] A priority to the task (0 is lowest priority) cannot be negative
  * @param uint32_t stack_size 					: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
- * @param int argc							    : [ in] First argument to be passed to the task (used for argc)
- * @param char* argv[]							: [ in] Second argument to be passed to the task (used for argv)
+ * @param void* arg  						    : [ in] Argument to be passed to the task
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(int argc, char* argv[]), os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, char** argv){
+os_err_e os_task_create(os_handle_t* h, char const * name, void* (*fn)(void*), os_task_mode_e mode, int8_t priority, uint32_t stack_size, void* arg){
 
 	/* Start task with the correct arguments
 	 ------------------------------------------------------*/
-	return os_task_start(h, name, fn, mode, priority, stack_size, argc, argv, 0);
+	return os_task_start(h, name, (void*)fn, NULL, mode, priority, stack_size, arg, NULL, 0);
 }
 
-
 /***********************************************************************
- * OS Create process
+ * OS Task Create Process flavor
  *
- * @brief This function creates a process using its ELF file
+ * @brief This function creates a new task, that will be called by the scheduler when the correct time comes
  *
- * @param char* file   : [in] File's name
- * @param void* argc   : [in] Argument number to be passed to the task
- * @param char* argv[] : [in] Array of strings to be passed to the task
+ * @param os_handle_t* h						: [out] handle to object
+ * @param char* name 							: [ in] name of the task
+ * @param int (*fn)(int, char**) 				: [ in] task's main function to be called
+ * @param os_process_t* proc					: [ in] Attached process (NULL if none)
+ * @param os_task_mode_e mode					: [ in] Inform what the task should do when returning (delete or keep the task block to get its return value; ATTENTION : in mode RETURN the user must use os_task_delete to avoid leaks
+ * @param int8_t priority						: [ in] A priority to the task (0 is lowest priority) cannot be negative
+ * @param uint32_t stack_size 					: [ in] The amount of stack to be reserved. A minimum of 128 bytes is required
+ * @param int argc  						    : [ in] argc argument to be passed to the task
+ * @param char** argv  						    : [ in] argv argument to be passed to the task
+ * @param uint32_t r9  						    : [ in] r9 value (must be GOT base address)
  *
  * @return os_err_e : An error code (0 = OK)
  *
  **********************************************************************/
-os_err_e os_task_createProcess(char* file, int argc, char* argv[]){
+os_err_e os_task_createProc(os_handle_t* h, char const * name, int (*fn)(int argc, char* argv[]), os_process_t* proc, os_task_mode_e mode, int8_t priority, uint32_t stack_size, int argc, char** argv, uint32_t r9){
 
-	/* Load ELF file
+	/* Start task with the correct arguments
 	 ------------------------------------------------------*/
-	os_elf_prog_t prog = os_elf_loadFile(file);
-
-	if(prog.entryPoint == NULL || prog.gotBase == 0)
-		return OS_ERR_UNKNOWN;
-
-	/* Start task with correct arguments
-	 ------------------------------------------------------*/
-	os_handle_t h;
-	return os_task_start(&h, file, prog.entryPoint, OS_TASK_MODE_DELETE, 10, 5 * OS_DEFAULT_STACK_SIZE, argc, argv, prog.gotBase);
+	return os_task_start(h, name, (void*)fn, proc, mode, priority, stack_size, (void*)argc, argv, r9);
 }
 
 
@@ -909,34 +886,6 @@ os_task_state_e os_task_getState(os_handle_t h){
 	return state;
 }
 
-
-/***********************************************************************
- * OS get task by PID
- *
- * @brief This function searches for a task using its PID
- *
- * @param uint16_t pid : [in] PID of the searched task
- *
- * @return os_list_cell_t* : reference to the cell containing the element or null if not found
- **********************************************************************/
-os_handle_t os_task_getByPID(uint16_t pid){
-
-	/* Enter Critical Section
-	 * If it's searching / inserting a block, it can be interrupted and another task can change the list. In this case, the first task will blow up when returning
-	 ------------------------------------------------------*/
-	OS_DECLARE_IRQ_STATE;
-	OS_ENTER_CRITICAL();
-
-	/* Search position to insert
-	 ------------------------------------------------------*/
-	os_list_cell_t* it = os_head.head.next;
-	while(it != NULL && ((os_task_t*)it->element)->pid != pid){
-		it = it->next;
-	}
-
-	OS_EXIT_CRITICAL();
-	return it == NULL ? NULL : it->element;
-}
 
 /***********************************************************************
  * OS get current task

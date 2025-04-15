@@ -16,6 +16,7 @@
  **********************************************************/
 
 extern os_list_head_t os_head;
+extern os_list_head_t os_process_list;
 
 /**********************************************************
  * PRIVATE FUNCTIONS
@@ -34,20 +35,36 @@ static void top(){
 	/* For each task
 	 ------------------------------------------------------*/
 	os_heap_mon_t mon = os_heap_monitor();
+	os_list_cell_t* it = os_process_list.head.next;
+	PRINTLN("");
+	PRINTLN("Memory usage, Used = %lu, Free = %lu, Total = %lu, Used Perc = %lu.%lu %%", mon.used_size, mon.total_size - mon.used_size, mon.total_size, mon.used_size * 100 / mon.total_size, mon.used_size * 10000 / mon.total_size % 100);
+	PRINTLN("Curent Tasks : ");
+	PRINTLN("PID       name");
+	while(it != NULL){
+		PRINTLN("%05d     %-10s", (int)((os_process_t*)it->element)->PID, ((os_process_t*)it->element)->p_name == NULL ? "No name" : ((os_process_t*)it->element)->p_name);
+		it = it->next;
+	}
+}
+
+static void task_top(){
+
+	/* For each task
+	 ------------------------------------------------------*/
+	os_heap_mon_t mon = os_heap_monitor();
 	os_list_cell_t* it = os_head.head.next;
 	PRINTLN("");
-	PRINTLN("Memory usage, Used = %lu, Free = %lu, Total = %lu, Used Perc = %lu.%lu %%", mon.used_size, mon.total_size - mon.used_size, mon.total_size, mon.used_size * 100 / mon.total_size, mon.used_size * 10 / mon.total_size );
+	PRINTLN("Memory usage, Used = %lu, Free = %lu, Total = %lu, Used Perc = %lu.%lu %%", mon.used_size, mon.total_size - mon.used_size, mon.total_size, mon.used_size * 100 / mon.total_size, mon.used_size * 10000 / mon.total_size % 100);
 	PRINTLN("Curent Tasks : ");
-	PRINTLN("PID,   name         state       priority");
+	PRINTLN("PID       state           prio    name");
 	while(it != NULL){
-		PRINTLN("%05d, %-10s   %-11s %d", ((os_task_t*)it->element)->pid, ((os_task_t*)it->element)->obj.name == NULL ? "No name" : ((os_task_t*)it->element)->obj.name,
-				task_states[os_task_getState(((os_handle_t)it->element))], ((os_task_t*)it->element)->priority);
+		PRINTLN("%05d     %-11s     %03d     %s", ((os_task_t*)it->element)->process == NULL ? 0 : ((os_task_t*)it->element)->process->PID, task_states[os_task_getState(((os_handle_t)it->element))],
+												((os_task_t*)it->element)->priority,  ((os_task_t*)it->element)->obj.name == NULL ? "No name" : ((os_task_t*)it->element)->obj.name);
 		it = it->next;
 	}
 }
 
 static void kill(){
-
+#if 0
 	/* Get argument
 	 ------------------------------------------------------*/
 	uint16_t pid = cli_get_uint16_argument(0, NULL);
@@ -67,6 +84,7 @@ static void kill(){
 	else{
 		PRINTLN("Task PID %d killed", pid);
 	}
+#endif
 }
 
 static void exec(){
@@ -150,10 +168,12 @@ static void exec(){
 
 	/* Create process
 	 ------------------------------------------------------*/
-	os_err_e err = os_task_createProcess(argv[0], argc, argv);
+	os_err_e err = os_process_create(argv[0], argc, argv);
 	if(err < 0){
 		PRINTLN("Error %ld", err);
 	}
+
+	PRINTLN("Process created OK");
 }
 
 /**********************************************************
@@ -161,9 +181,10 @@ static void exec(){
  **********************************************************/
 
 cliElement_t cliTasks[] = {
-		cliActionElementDetailed("top", 		top, 		"", 	"Lists all tasks",  								NULL),
+		cliActionElementDetailed("top", 		top, 		"", 	"Lists all processes",  							NULL),
+		cliActionElementDetailed("task_top", 	task_top, 	"", 	"Lists all tasks",  								NULL),
 		cliActionElementDetailed("kill", 		kill, 		"u", 	"Kill a task using PID",  							NULL),
-		cliActionElementDetailed("exec", 		exec, 		"...", 	"Executes an ELF file, passing arguments. Integers are transformed in string format",  		NULL),
+		cliActionElementDetailed("exec", 		exec, 		"s...", "Executes an ELF file, passing arguments. Integers are transformed in string format",  		NULL),
 		cliMenuTerminator()
 };
 

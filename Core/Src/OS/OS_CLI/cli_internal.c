@@ -53,6 +53,7 @@ extern cliElement_t cliMainMenu[];
 static size_t len = 0;
 static char* argsStr = NULL;
 static cliElement_t* currEl = NULL;
+static char* cli_tok = NULL;
 
 #if (defined(CLI_POLLING_EN) && CLI_POLLING_EN == 1)
 bool cli_cmd_waiting_treatment = false;
@@ -129,6 +130,33 @@ static int64_t cli_verify_args_str(cliElement_t const * const e, bool* elipsisPr
     }
     
     return argsLen;
+}
+
+char* cli_strtok(char* s, const char* del) {
+    if (s != NULL)
+        cli_tok = s;
+    else if (cli_tok == NULL)
+        return NULL;
+
+    // Skip leading delimiters
+    while (*cli_tok && strchr(del, *cli_tok))
+        cli_tok++;
+
+    if (*cli_tok == '\0')
+        return NULL;
+
+    char* token_start = cli_tok;
+
+    // Find the next delimiter
+    while (*cli_tok && !strchr(del, *cli_tok))
+        cli_tok++;
+
+    if (*cli_tok) {
+        *cli_tok = '\0';
+        cli_tok++;  // Move past the delimiter for next call
+    }
+
+    return token_start;
 }
 
 static void cli_print_element(cliElement_t const * const e){
@@ -567,7 +595,7 @@ static void cli_execute_action(cliElement_t* e){
         
         if(len == -1) return;
 
-        argsStr = strtok(NULL, "\0");
+        argsStr = cli_strtok(NULL, "\0");
         
         if(argsStr == NULL) argsStr = "";
         
@@ -612,7 +640,7 @@ static void cli_find_action(char cliBuffer[], size_t maxLen){
     
     cliElement_t init = cliSubMenuElement("main", cliMainMenu, "main menu");
     cliElement_t* currentMenu = &init;
-    char* tkn = strtok((char*)cliBuffer, " ");
+    char* tkn = cli_strtok((char*)cliBuffer, " ");
     
     while(tkn != NULL){
         cliElement_t* e = cli_find_element_in_menu(tkn, cliBuffer, maxLen, currentMenu);
@@ -638,7 +666,7 @@ static void cli_find_action(char cliBuffer[], size_t maxLen){
             return;
         }
 
-        tkn = strtok(NULL, " ");
+        tkn = cli_strtok(NULL, " ");
     }
     
     MENU_PRINTF("Menu '%s' - %s\r\n", currentMenu->name, currentMenu->desc);

@@ -40,7 +40,7 @@ os_err_e os_scheduler_start();
  * @brief Stops the scheduler
  *
  **********************************************************************/
-void os_scheduler_stop();
+os_err_e os_scheduler_stop();
 
 
 /***********************************************************************

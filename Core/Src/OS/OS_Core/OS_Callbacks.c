@@ -51,9 +51,8 @@ __weak void os_task_on_block_cb(os_handle_t h){
  * @return : void* : generic return value
  *
  **********************************************************************/
-__weak void* os_idle_task_fn(int argc, char* argv[]){
-	UNUSED_ARG(argc);
-	UNUSED_ARG(argv);
+__weak void* os_idle_task_fn(void* arg){
+	UNUSED_ARG(arg);
 	while(1){
 	}
 }
