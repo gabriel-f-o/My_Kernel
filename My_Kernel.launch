@@ -66,7 +66,7 @@
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="4"/>
     </listAttribute>
-    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;/&gt;"/>
+    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&lt;gdbmemoryBlockExpression address=&quot;537001932&quot; label=&quot;0x2001ffcc&quot;/&gt;&lt;/memoryBlockExpressionList&gt;"/>
     <stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
-    <stringAttribute key="saved_expressions&lt;seperator&gt;Unknown" value="0x20013970,0x20013b59,0x20013a78,0x20015008,0x20014fdc,0x200138c4,0x200138bc,0x2001353c,0x20013538,0x20013894,0x20000000,0x8013400"/>
+    <stringAttribute key="saved_expressions&lt;seperator&gt;Unknown" value="0x20013970,0x20013b59,0x20013a78,0x20015008,0x20014fdc,0x200138c4,0x200138bc,0x2001353c,0x20013538,0x20013894,0x20000000,0x8013400,0x2001ffe0,0x2001ff88"/>
 </launchConfiguration>

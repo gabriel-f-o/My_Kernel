@@ -242,8 +242,27 @@ static os_err_e os_elf_adjustMem(os_process_t* p, lfs_file_t* lfs_file){
  * OS PUBLIC FUNCTIONS
  *********************************************/
 
-
+/***********************************************************************
+ * OS Process get by PID
+ *
+ * @brief This function searches for a process with a giben PID
+ *
+ * @param uint16_t pid : [in] PID to search
+ *
+ * @return os_process_t* : reference to found process
+ *
+ **********************************************************************/
 os_process_t* os_process_getByPID(uint16_t pid){
+	if(pid == 0) return NULL;
+
+	os_list_cell_t* it = os_process_list.head.next;
+	while(it != NULL){
+		if( ((os_process_t*)it->element)->PID == pid )
+			return it->element;
+
+		it = it->next;
+	}
+
 	return NULL;
 }
 
@@ -354,11 +373,8 @@ os_err_e os_process_create(char* file, int argc, char* argv[]){
 
 	/* Create main thread
 	 ------------------------------------------------------*/
-	char t_name[32];
-	snprintf(t_name, sizeof(t_name), "%s#%d", file, (int)((os_list_head_t*)(new_proc->thread_list))->listSize);
-
 	os_handle_t t;
-	ret = os_task_createProc(&t, t_name, new_proc->entry_fn, new_proc, OS_TASK_MODE_DELETE, 40, OS_DEFAULT_STACK_SIZE, argc, argv, new_proc->gotBaseAddr);
+	ret = os_task_createProc(&t, NULL, new_proc->entry_fn, new_proc, OS_TASK_MODE_DELETE, 40, OS_DEFAULT_STACK_SIZE, argc, argv, new_proc->gotBaseAddr);
 	if(ret != OS_ERR_OK) {
 		PRINTLN("Error creating main task");
 		goto exit_file;
@@ -429,3 +445,37 @@ exit:
 	return ret;
 }
 
+
+/***********************************************************************
+ * Kill a process
+ *
+ * @brief Kill a process by releasing its
+ *
+ * @param uint16_t pid : [in] PID
+ *
+ * @return os_err_e : An error code (0 = OK)
+ *
+ **********************************************************************/
+os_err_e os_process_kill(os_process_t* proc){
+
+	os_err_e ret = os_list_remove(&os_process_list, proc);
+	if(ret != OS_ERR_OK)
+		return ret;
+
+	os_list_cell_t* it = ((os_list_head_t*)proc->thread_list)->head.next;
+	while(it != NULL){
+		ret = os_task_delete(it->element);
+		if(ret != OS_ERR_OK)
+			return ret;
+
+		it = it->next;
+	}
+
+	os_list_clear(proc->thread_list);
+
+	os_heap_free(proc->segments);
+	os_heap_free(proc->p_name);
+	os_heap_free(proc);
+
+	return OS_ERR_OK;
+}

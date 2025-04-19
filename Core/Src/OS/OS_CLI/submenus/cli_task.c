@@ -57,34 +57,40 @@ static void task_top(){
 	PRINTLN("Curent Tasks : ");
 	PRINTLN("PID       state           prio    name");
 	while(it != NULL){
+		char fullname[32] = "No name";
+		if(((os_task_t*)it->element)->process != NULL){
+			snprintf(fullname, sizeof(fullname), "[%s#%d]", ((os_task_t*)it->element)->process->p_name, os_list_searchIndex(((os_task_t*)it->element)->process->thread_list, it->element));
+		}
+
+		char* name = ((os_task_t*)it->element)->obj.name == NULL ? fullname : ((os_task_t*)it->element)->obj.name;
+
 		PRINTLN("%05d     %-11s     %03d     %s", ((os_task_t*)it->element)->process == NULL ? 0 : ((os_task_t*)it->element)->process->PID, task_states[os_task_getState(((os_handle_t)it->element))],
-												((os_task_t*)it->element)->priority,  ((os_task_t*)it->element)->obj.name == NULL ? "No name" : ((os_task_t*)it->element)->obj.name);
+												((os_task_t*)it->element)->priority, name);
 		it = it->next;
 	}
 }
 
 static void kill(){
-#if 0
+
 	/* Get argument
 	 ------------------------------------------------------*/
 	uint16_t pid = cli_get_uint16_argument(0, NULL);
 
 	/* Get task by PID
 	 ------------------------------------------------------*/
-	os_handle_t h = os_task_getByPID(pid);
+	os_process_t* h = os_process_getByPID(pid);
 
 	/* Delete task
 	 ------------------------------------------------------*/
-	os_task_delete(h);
+	os_process_kill(h);
 
 	/* Feedback
 	 ------------------------------------------------------*/
 	if(h == NULL)
-		PRINTLN("Task PID %d not found", pid);
+		PRINTLN("Process PID %d not found", pid);
 	else{
-		PRINTLN("Task PID %d killed", pid);
+		PRINTLN("Process PID %d killed", pid);
 	}
-#endif
 }
 
 static void exec(){
@@ -169,11 +175,11 @@ static void exec(){
 	/* Create process
 	 ------------------------------------------------------*/
 	os_err_e err = os_process_create(argv[0], argc, argv);
-	if(err < 0){
+	if(err != OS_ERR_OK){
 		PRINTLN("Error %ld", err);
 	}
-
-	PRINTLN("Process created OK");
+	else
+		PRINTLN("Process created OK");
 }
 
 /**********************************************************

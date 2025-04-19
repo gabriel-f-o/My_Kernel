@@ -95,6 +95,19 @@ typedef struct os_process_ {
 
 
 /***********************************************************************
+ * OS Process get by PID
+ *
+ * @brief This function searches for a process with a giben PID
+ *
+ * @param uint16_t pid : [in] PID to search
+ *
+ * @return os_process_t* : reference to found process
+ *
+ **********************************************************************/
+os_process_t* os_process_getByPID(uint16_t pid);
+
+
+/***********************************************************************
  * OS Create process
  *
  * @brief This function creates a process using its ELF file
@@ -107,5 +120,19 @@ typedef struct os_process_ {
  *
  **********************************************************************/
 os_err_e os_process_create(char* file, int argc, char* argv[]);
+
+
+/***********************************************************************
+ * Kill a process
+ *
+ * @brief Kill a process by releasing its
+ *
+ * @param uint16_t pid : [in] PID
+ *
+ * @return os_err_e : An error code (0 = OK)
+ *
+ **********************************************************************/
+os_err_e os_process_kill(os_process_t* proc);
+
 
 #endif /* INC_OS_OS_CORE_OS_PROCESS_H_ */

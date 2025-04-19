@@ -21,6 +21,7 @@
 #include "OS/OS_Core/OS_MsgQ.h"
 #include "OS/OS_Core/OS_Topic.h"
 #include "OS/OS_Core/OS_Process.h"
+#include "OS/OS_Core/OS_Syscalls.h"
 
 /**********************************************
  * PUBLIC FUNCTIONS

@@ -235,7 +235,7 @@ os_handle_t os_task_getByPID(uint16_t pid);
  *
  * @return os_task_t* : reference to the current task
  **********************************************************************/
-os_task_t const * os_task_getCurrentTask(void);
+os_task_t* os_task_getCurrentTask(void);
 
 
 /***********************************************************************

@@ -655,6 +655,15 @@ os_err_e os_task_delete(os_handle_t h){
 		return OS_ERR_UNKNOWN;
 	}
 
+	if( t->process != NULL ){
+		if( ((os_list_head_t*)t->process->thread_list)->listSize == 0 ){
+			ASSERT(os_process_kill(t->process) == OS_ERR_OK);
+		}
+		else {
+			os_list_remove( ((os_process_t*)t->process)->thread_list, t);
+		}
+	}
+
 	/* Remove task from object block list if needed
 	 ------------------------------------------------------*/
 	if( t->objWaited != NULL) {
@@ -894,7 +903,7 @@ os_task_state_e os_task_getState(os_handle_t h){
  *
  * @return os_task_t* : reference to the current task
  **********************************************************************/
-os_task_t const * os_task_getCurrentTask(void){
+os_task_t* os_task_getCurrentTask(void){
     if(os_cur_task == NULL)
         return NULL;
         

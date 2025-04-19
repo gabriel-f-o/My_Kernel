@@ -264,6 +264,42 @@ os_list_cell_t* os_list_search(os_list_head_t* head, void* el){
 
 
 /***********************************************************************
+ * OS List Get index
+ *
+ * @brief This function searches for an element in a list and returns index
+ *
+ * @param os_list_head_t* head : [in] reference to the head of the list
+ * @param void* el	  		   : [in] element to search
+ *
+ * @return int : element index in list or -1 if not found
+ **********************************************************************/
+int os_list_searchIndex(os_list_head_t* head, void* el){
+
+	/* Check for argument errors
+	 ------------------------------------------------------*/
+	if(el == NULL) return -1;
+	if(head == NULL) return -1;
+
+	/* Enter Critical Section
+	 * If it's searching / inserting a block, it can be interrupted and another task can change the list. In this case, the first task will blow up when returning
+	 ------------------------------------------------------*/
+	OS_DECLARE_IRQ_STATE;
+	OS_ENTER_CRITICAL();
+
+	/* Search position to insert
+	 ------------------------------------------------------*/
+	int i = 0;
+	os_list_cell_t* it = head->head.next;
+	while(it != NULL && it->element != el){
+		it = it->next;
+	}
+
+	OS_EXIT_CRITICAL();
+	return it->element == el ? i : -1;
+}
+
+
+/***********************************************************************
  * OS Handle List Search by name
  *
  * @brief This function searches for a handle in a list using its name and type. Must be used in handle lists

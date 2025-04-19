@@ -73,6 +73,7 @@ void* blinky(void){
 
 /* USER CODE END 0 */
 
+
 /**
   * @brief  The application entry point.
   * @retval int
@@ -106,6 +107,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 	ASSERT(os_init("main", 80, OS_DEFAULT_STACK_SIZE, "idle", OS_DEFAULT_STACK_SIZE) == OS_ERR_OK);
+
 	ASSERT(os_task_create(&blinky_task, "blinky", (void*)blinky,	  OS_TASK_MODE_DELETE, 80, OS_DEFAULT_STACK_SIZE, 0) == OS_ERR_OK);
 	ASSERT(os_task_create(&cli_task, 	"cli",    (void*)cli_process, OS_TASK_MODE_DELETE, 80, OS_DEFAULT_STACK_SIZE, 0) == OS_ERR_OK);
 	ASSERT(os_mutex_create(&uartMutex, "uart mutex") == OS_ERR_OK);
@@ -114,7 +116,6 @@ int main(void)
 
 	PRINTLN("Init OS finished");
 	os_lfs_init();
-
 
   /* USER CODE END 2 */
 

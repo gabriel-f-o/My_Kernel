@@ -118,6 +118,19 @@ os_list_cell_t* os_list_search(os_list_head_t* head, void* el);
 
 
 /***********************************************************************
+ * OS List Get index
+ *
+ * @brief This function searches for an element in a list and returns index
+ *
+ * @param os_list_head_t* head : [in] reference to the head of the list
+ * @param void* el	  		   : [in] element to search
+ *
+ * @return int : element index in list or -1 if not found
+ **********************************************************************/
+int os_list_searchIndex(os_list_head_t* head, void* el);
+
+
+/***********************************************************************
  * OS Handle List Search by name
  *
  * @brief This function searches for a handle in a list using its name and type. Must be used in handle lists
